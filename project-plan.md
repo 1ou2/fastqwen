@@ -1,568 +1,713 @@
-# Project Plan — "J'ai fait parler mon modèle 10x plus vite"
+# Project Plan — "I made my model speak 10x faster"
 
-> Vidéo YouTube : la course d'inférence. Rendre Qwen3.8-27B confortable en local
-> sur DGX Spark via quantization, distillation d'un draft model maison et
-> speculative decoding — le tout mesuré, étape par étape, dans vLLM.
+> YouTube video: the inference race. Making Qwen3.8-27B comfortable locally
+> on DGX Spark via quantization, distillation of a home-made draft model and
+> speculative decoding — all measured, step by step, in vLLM.
 >
-> Répertoire projet : `/home/gabriel/dev/fastqwen`
-> Date de démarrage : 22/08/2026
+> Project directory: `/home/gabriel/dev/fastqwen`
+> Start date: 22/08/2026
+> Revision: 16/10/2026 — addition of §6.5 (baseline measurement suite); unit 1 implemented (`qwenbench/`, `scripts/probe.py`, `tests/`); repository switched to English (official language)
 >
-> **Ce document est le plan de référence pour l'implémentation.** Tout écart
-> constaté en cours de route se documente dans `benchmarks/results.md`, pas ici.
+> **This document is the reference plan for the implementation.** Any difference
+> found along the way is documented in `benchmarks/results.md`, not here.
 
 ---
 
-## 1. Objectif du projet
+## 1. Project objective
 
-Vidéo YouTube originale sur les techniques d'optimisation d'inférence des LLMs.
+Original YouTube video on LLM inference optimization techniques.
 
-- **Narration** : Qwen3.8-27B est excellent mais trop lent pour tourner
-  confortablement en local. On l'optimise étape par étape, avec un benchmark
-  visuel à chaque chapitre.
-- **Métrique du titre** : deux chiffres distincts, jamais confondus —
-  1. **tokens/s en décodage** (batch=1, longueur de génération fixée,
-     `reasoning_effort` figé) : la mesure de vitesse pure ;
-  2. **temps total jusqu'à la réponse finale complète** à `reasoning_effort`
-     identique : c'est ce que l'audience ressent, et c'est ce chiffre qui
-     portera le titre. Toute variation du nombre de tokens de raisonnement
-     est explicitement mentionnée à l'écran, sinon le gain est faux.
-- **Contraintes** : évaluations systématiquement sur DGX Spark ; H100 (cluster
-  de 4) uniquement pour l'entraînement ; max 3 jours consécutifs de GPU.
-- **Périmètre** : texte uniquement. L'encodeur vision du 27B n'est ni quantizé
-  ni évalué.
+- **Narration**: Qwen3.8-27B is excellent but too slow to run
+  comfortably locally. We optimize it step by step, with a visual benchmark
+  at each chapter.
+- **Title metric**: two distinct figures, never conflated —
+  1. **decode tokens/s** (batch=1, fixed generation length,
+     `reasoning_effort` frozen): the pure speed measurement;
+  2. **total time to the complete final answer** at identical
+     `reasoning_effort`: this is what the audience feels, and this is the figure
+     that will carry the title. Any variation in the number of reasoning tokens
+     is explicitly mentioned on screen, otherwise the gain is fake.
+- **Constraints**: evaluations systematically on DGX Spark; H100 (cluster
+  of 4) only for training; max 3 consecutive days of GPU.
+- **Scope**: text only. The 27B's vision encoder is neither quantized
+  nor evaluated.
 
-### 1.1 Objectifs d'apprentissage (critères de réussite personnels)
+### 1.1 Learning objectives (personal success criteria)
 
-Le projet est autant un support pédagogique qu'une vidéo. **vLLM est le moteur
-unique du projet**, précisément pour monter en compétence dessus : chaque
-mécanisme ci-dessous doit être compris, manipulé, et expliqué dans la vidéo.
+The project is as much a teaching aid as a video. **vLLM is the
+single engine of the project**, precisely to build up skill on it: every
+mechanism below must be understood, manipulated, and explained in the video.
 
-| Mécanisme | Où il est travaillé |
+| Mechanism | Where it is worked on |
 |---|---|
-| PagedAttention, gestion du KV cache, mémoire unifiée | Étape 0, étape D |
-| Continuous batching, `--max-num-seqs`, saturation | Étape 0, étape D |
-| Chunked prefill, TTFT, prefix caching | Étape D |
-| CUDA graphs, `--enforce-eager`, déterminisme | Protocole (§6) |
-| Quantization hors ligne (NVFP4, FP8) et kernels | Étape A |
-| KV cache quantizé | Étape D |
-| Speculative decoding : vérification, taux d'acceptation, γ | Étape C |
-| Multi-token prediction (MTP) natif | Étape C |
-| Distillation SFT et KD sur logits | Étape B |
-| Profiling : métriques Prometheus, `vllm bench` | Protocole (§6) |
+| PagedAttention, KV cache management, unified memory | Step 0, Stage D |
+| Continuous batching, `--max-num-seqs`, saturation | Step 0, Stage D |
+| Chunked prefill, TTFT, prefix caching | Stage D |
+| CUDA graphs, `--enforce-eager`, determinism | Protocol (§6) |
+| Offline quantization (NVFP4, FP8) and kernels | Stage A |
+| Quantized KV cache | Stage D |
+| Speculative decoding: verification, acceptance rate, γ | Stage C |
+| Multi-token prediction (MTP) native | Stage C |
+| SFT and logit KD distillation | Stage B |
+| Profiling: Prometheus metrics, `vllm bench` | Protocol (§6) |
 
 ---
 
-## 2. Matériel
+## 2. Hardware
 
-| Machine | Usage |
+| Machine | Use |
 |---|---|
-| NVIDIA DGX Spark (GB10, sm_121, mémoire unifiée 128 Go, ~273 Go/s) | Tous les benchmarks et inférences (c'est la machine de l'audience) |
-| 4× H100 | Génération du dataset, calibration, entraînement du draft model |
+| NVIDIA DGX Spark (GB10, sm_121, unified memory 128 GB, ~273 GB/s) | All benchmarks and inferences (this is the audience's machine) |
+| 4× H100 | Dataset generation, calibration, training of the draft model |
 
 ---
 
-## 3. Modèles retenus
+## 3. Models selected
 
-| Rôle | Modèle | Statut |
+| Role | Model | Status |
 |---|---|---|
-| Target (héros de la vidéo) | **Qwen3.8-27B** | ✅ support day-0 (vLLM, SGLang, llama.cpp), déjà installé |
-| Draft « gratuit » intégré | **Têtes MTP natives du 3.8-27B** | ✅ multi-token prediction embarqué (cf. §3.3) |
-| Élève / draft model | **Qwen3.5-2B initialisé puis distillé** | ✅ compatibilité tokenizer vérifiée |
+| Target (video hero) | **Qwen3.8-27B** | ✅ day-0 support (vLLM, SGLang, llama.cpp), already installed |
+| Built-in "free" draft | **Native MTP heads of the 3.8-27B** | ✅ embedded multi-token prediction (cf. §3.3) |
+| Student / draft model | **Qwen3.5-2B initialized then distilled** | ✅ tokenizer compatibility verified |
 
-### 3.1 Caractéristiques du target qui contraignent tout le reste
+### 3.1 Characteristics of the target that constrain everything else
 
-- **27B dense** (pas de MoE) : chaque paramètre est lu à chaque token → le
-  décodage est purement **memory-bound** (§5).
-- **Pile d'attention hybride** : 64 couches alternant 3 blocs *Gated DeltaNet*
-  pour 1 bloc *gated-attention*. Conséquence directe : le KV cache est bien
-  plus petit qu'un transformer classique (seule une couche sur quatre en a un),
-  ce qui renforce la thèse « le goulot est la lecture des poids ».
-- **Contexte natif 262 144 tokens** (~1M avec YaRN) : la pression mémoire vient
-  surtout des poids et du prefill, pas du cache.
-- **Thinking hybride, activé par défaut**, piloté par `reasoning_effort`
-  (`low` / `medium` / `xhigh`). Il n'existe plus de variante « Instruct ».
-- **Vision** : encodeur multimodal présent, hors périmètre.
-- **Licence Apache 2.0**.
-- **La famille 3.8 n'a aucun modèle sous 27B** : il n'existe pas de petit frère
-  natif à utiliser comme draft. C'est la justification de l'étape B.
+- **27B dense** (no MoE): every parameter is read at every token → decoding is
+  purely **memory-bound** (§5).
+- **Hybrid attention stack**: 64 layers alternating 3 *Gated DeltaNet* blocks
+  for 1 *gated-attention* block. Direct consequence: the KV cache is much
+  smaller than a classic transformer (only one layer in four has one),
+  which reinforces the thesis "the bottleneck is reading the weights".
+- **Native context 262,144 tokens** (~1M with YaRN): memory pressure comes
+  mainly from the weights and the prefill, not from the cache.
+- **Hybrid thinking, enabled by default**, driven by `reasoning_effort`
+  (`low` / `medium` / `xhigh`). There is no longer an "Instruct" variant.
+- **Vision**: multimodal encoder present, out of scope.
+- **Apache 2.0 license**.
+- **The 3.8 family has no model below 27B**: there is no native little brother
+  to use as a draft. This is the justification for Stage B.
 
-### 3.2 Pourquoi Qwen3.5-2B comme élève
+### 3.2 Why Qwen3.5-2B as student
 
-Le 3.8 n'existe qu'en 27B (et au-dessus). Le plus petit modèle de la même
-lignée de tokenizer est dans la génération précédente : **Qwen3.5-2B**. Il sert
-de point d'initialisation, puis il est distillé depuis le 27B lui-même.
+The 3.8 only exists in 27B (and above). The smallest model from the same
+tokenizer lineage is in the previous generation: **Qwen3.5-2B**. It serves
+as the initialization point, then it is distilled from the 27B itself.
 
-### 3.3 Les têtes MTP : le draft intégré
+### 3.3 The MTP heads: the built-in draft
 
-Le 27B embarque des têtes de **multi-token prediction (MTP)** : le modèle
-prédit nativement plusieurs tokens en avant, ce qui donne un speculative
-decoding « gratuit » (aucun entraînement, aucun GPU H100 consommé). Les stacks
-communautaires sur GB10 tournent d'ailleurs en `NVFP4 + MTP3`.
+The 27B embeds **multi-token prediction (MTP)** heads: the model
+natively predicts several tokens ahead, which gives "free" speculative
+decoding (no training, no H100 GPU consumed). Community stacks on GB10
+even run as `NVFP4 + MTP3`.
 
-Le MTP est donc un **bras obligatoire de l'étape C**, pas un bonus. Il fournit
-la ligne de comparaison honnête : si le draft distillé maison ne bat pas le MTP
-natif, c'est le résultat de la vidéo, et il est intéressant à expliquer.
+MTP is therefore a **mandatory arm of Stage C**, not a bonus. It provides
+the honest comparison line: if the home-made distilled draft does not beat the
+native MTP, that is the video's result, and it is interesting to explain.
 
-### 3.4 Compatibilité des tokenizers (vérifiée le 22/08/2026)
+### 3.4 Tokenizer compatibility (verified on 22/08/2026)
 
-Script : `check_tokenizer_compat.py` (racine du repo). Ce script a servi à
-**valider la faisabilité** du choix de l'élève ; il doit être durci (§3.5)
-avant de servir de garde-fou reproductible dans le pipeline.
+Script: `check_tokenizer_compat.py` (repo root). This script served to
+**validate the feasibility** of the student choice; it must be hardened (§3.5)
+before serving as a reproducible guardrail in the pipeline.
 
-Résultats :
+Results:
 
-- `vocab.json` et `merges.txt` bit à bit identiques ; cœur du tokenizer identique
-- Vocabulaire de base : 248 044 tokens des deux côtés
-- Encodage fonctionnel strictement identique (tests FR, guillemets « », emoji,
-  multilingue, tokens chat)
-- Seules différences : 7 tokens spéciaux audio/TTS côté 3.8 (IDs 248070-248076,
-  **au-delà** du vocabulaire de base, donc appendés et sans décalage d'ID) et le
+- `vocab.json` and `merges.txt` bit-for-bit identical; tokenizer core identical
+- Base vocabulary: 248,044 tokens on both sides
+- Functional encoding strictly identical (FR tests, quotes, emoji,
+  multilingual, chat tokens)
+- Only differences: 7 audio/TTS special tokens on the 3.8 side (IDs 248070-248076,
+  **beyond** the base vocabulary, therefore appended with no ID shift) and the
   `chat_template`
 
-**Décision** : compatibles. Initialiser l'élève depuis Qwen3.5-2B tel quel, sans
-extension de vocabulaire. Utiliser le **chat template du 3.8 partout** là où un
-template est requis (génération du dataset, inférence finale, évaluations
-conversationnelles) — et **jamais** pour le calcul de perplexité (§6, point 4).
+**Decision**: compatible. Initialize the student from Qwen3.5-2B as is, without
+vocabulary extension. Use the **3.8 chat template everywhere** where a
+template is required (dataset generation, final inference, conversational
+evaluations) — and **never** for the perplexity computation (§6, point 4).
 
-### 3.5 Contrat de compatibilité à verrouiller
+### 3.5 Compatibility contract to lock down
 
-Le speculative decoding exige une correspondance **exacte** token ↔ ID. Avant
-l'étape B, `check_tokenizer_compat.py` doit affirmer, sur des **révisions HF
-pinnées**, les exigences dures suivantes :
+Speculative decoding requires an **exact** token ↔ ID match. Before
+Stage B, `check_tokenizer_compat.py` must assert, on **pinned HF revisions**,
+the following hard requirements:
 
-1. Égalité de l'ensemble des paires (token → ID) sur tout le vocabulaire partagé.
-2. IDs identiques pour `bos`, `eos`, `pad` et les tokens de chat
-   (`im_start`, `im_end`, et tout spécial utilisé par le template du 3.8).
-3. Tout token supplémentaire du 3.8 est strictement au-delà de la taille du
-   vocabulaire de base : aucun ID partagé n'est décalé.
-4. `apply_chat_template(...)` avec le template du 3.8 rend des IDs identiques
-   sur les deux tokenizers.
-5. Un fichier de tokenizer absent est un **échec**, jamais un avertissement.
+1. Equality of the set of (token → ID) pairs over the entire shared vocabulary.
+2. Identical IDs for `bos`, `eos`, `pad` and the chat tokens
+   (`im_start`, `im_end`, and any special used by the 3.8 template).
+3. Any additional token of the 3.8 is strictly beyond the size of the
+   base vocabulary: no shared ID is shifted.
+4. `apply_chat_template(...)` with the 3.8 template yields identical IDs
+   on both tokenizers.
+5. A missing tokenizer file is a **failure**, never a warning.
 
-Différences **tolérées** et listées explicitement : `chat_template`,
-`clean_up_tokenization_spaces`, tokens audio/TTS. Le verdict du script ne doit
-pas dépendre de ces différences cosmétiques.
+**Tolerated** differences, listed explicitly: `chat_template`,
+`clean_up_tokenization_spaces`, audio/TTS tokens. The script's verdict must not
+depend on these cosmetic differences.
 
-À confirmer en conditions réelles : vLLM valide la compatibilité des tokenizers
-au chargement d'un `draft_model` ; noter le message exact en cas d'échec.
+To be confirmed under real conditions: vLLM validates tokenizer compatibility
+when loading a `draft_model`; note the exact message in case of failure.
 
 ---
 
-## 4. Déroulé par étapes (entrée → sortie)
+## 4. Step-by-step flow (input → output)
 
 ```
-Qwen3.8-27B (BF16, thinking hybride, têtes MTP natives)
+Qwen3.8-27B (BF16, hybrid thinking, native MTP heads)
   │
   ├──> A: Quantization ─────────────────────────┐
-  │     FP8 → NVFP4 4-bit → palier agressif     │
+  │     FP8 → NVFP4 4-bit → aggressive tier     │
   │                                             ├──> C: Speculative decoding
-  ├──> B: Distillation du draft ────────────────┤     MTP natif · draft brut
-  │     (prof = 3.8-27B lui-même, sur H100)     │     draft distillé · MTP+draft
+  ├──> B: Draft distillation ───────────────────┤     native MTP · raw draft
+  │     (teacher = 3.8-27B itself, on H100)     │     distilled draft · MTP+draft
   │                                             │
   └──> D: KV cache & serving ───────────────────┘
         (prefill, cache, CUDA graphs)
                     │
-                    └──> E: Climax vidéo
+                    └──> E: Video climax
 ```
 
-### Étape 0 — Prérequis & baseline
+### Step 0 — Prerequisites & baseline
 
-- **Entrée** : Qwen3.8-27B BF16 sur DGX Spark
-- **Prérequis à valider avant toute mesure** (bloquants) :
-  1. **Image vLLM fonctionnelle sur GB10 (sm_121)** : vLLM standard ne
-     s'installe pas tel quel sur Spark ; utiliser une image communautaire
-     **pinnée par digest** (référence : `eugr/spark-vllm-b12x`) ou construire
-     depuis `eugr/spark-vllm-docker`. Noter digest + version vLLM exacte : c'est
-     le socle de toute la reproductibilité.
-  2. **Support FP8** sur GB10 confirmé par un run court.
-  3. **Support NVFP4** (chargement d'un checkpoint 4-bit + génération) confirmé.
-  4. **Mode MTP** : identifier la clé `--speculative-config` exacte supportée par
-     cette version de vLLM et vérifier un run court.
-- **Action** : benchmark complet avec le protocole uniforme (§6), avec
-  `reasoning_effort` **figé et documenté**.
-- **Sortie** : chiffres de référence — tout sera comparé à ça.
+- **Input**: Qwen3.8-27B BF16 on DGX Spark
+- **Prerequisites to validate before any measurement** (blocking):
+  1. **Working vLLM image on GB10 (sm_121)**: standard vLLM does not
+     install as is on Spark; use a community image
+     **pinned by digest** (reference: `eugr/spark-vllm-b12x`) or build
+     from `eugr/spark-vllm-docker`. Note digest + exact vLLM version: this is
+     the measurement core of all reproducibility.
+  2. **FP8 support** on GB10 confirmed by a short run.
+  3. **NVFP4 support** (loading a 4-bit checkpoint + generation) confirmed.
+  4. **MTP mode**: identify the exact `--speculative-config` key supported by
+     this vLLM version and verify with a short run. (`qwen3_5_mtp` exists in
+     vLLM 0.31.0 — §6.5.6 — to be reconfirmed on the pinned image.)
+- **Action**: full benchmark with the uniform protocol (§6), with
+  `reasoning_effort` **frozen and documented**.
+- **Output**: reference figures — everything will be compared to this.
 
-**Choix du runtime d'inférence : vLLM partout, pour tout.** Un seul moteur pour
-la baseline, les quantizations, les benchmarks et le speculative decoding.
-Motif double : (1) sinon on mesure le runtime et pas l'optimisation ;
-(2) **vLLM est le moteur que je veux maîtriser** — c'est un objectif
-d'apprentissage du projet, pas un choix par défaut. Concrètement, on utilise
-`vllm bench latency|throughput|serve` et l'endpoint Prometheus pour les mesures,
-avec un wrapper mince (`scripts/bench_spark.py`) plutôt qu'un banc maison.
+**Choice of inference runtime: vLLM everywhere, for everything.** A single engine for
+the baseline, the quantizations, the benchmarks and the speculative decoding.
+Two reasons: (1) otherwise we measure the runtime and not the optimization;
+(2) **vLLM is the engine I want to master** — it is a learning objective
+of the project, not a default choice. Concretely, we use
+`vllm bench latency|throughput|serve` and the Prometheus endpoint for measurements,
+with a thin wrapper (`scripts/bench_spark.py`) rather than a home-made harness.
 
-### Étape A — Quantization
+### Stage A — Quantization
 
-Trois paliers, du plus sûr au plus agressif.
+Three tiers, from safest to most aggressive.
 
-1. **FP8** : le plus simple. Qwen publie des dépôts `-FP8` pour tous ses modèles
-   ouverts : on part du checkpoint officiel, sans conversion. Quasi sans perte.
-2. **NVFP4 4-bit** : le palier principal, et le **format natif de Blackwell**
-   (FP4 avec échelle FP8 par micro-blocs). C'est le chemin matériel du GB10 :
-   c'est donc là que se trouve le vrai gain de vitesse. Produit hors ligne avec
-   NVIDIA ModelOpt / `llm-compressor`, puis chargé par vLLM (format modelopt
-   détecté depuis la config du checkpoint).
-3. **La limite** : méthode réellement plus agressive (3-bit / 2-bit type HQQ,
-   ou recette mixte dégradée) pour montrer la casse. Si la dégradation n'est pas
-   spectaculaire, c'est aussi un résultat à raconter (« les méthodes modernes
-   sont robustes jusqu'à 4-bit »).
+1. **FP8**: the simplest. Qwen publishes `-FP8` repos for all its open
+   models: we start from the official checkpoint, without conversion. Almost no loss.
+2. **NVFP4 4-bit**: the main tier, and the **native format of Blackwell**
+   (FP4 with FP8 scale per micro-block). This is the GB10 hardware path:
+   so this is where the real speed gain is. Produced offline with
+   NVIDIA ModelOpt / `llm-compressor`, then loaded by vLLM (modelopt format
+   detected from the checkpoint config).
+3. **The limit**: a genuinely more aggressive method (3-bit / 2-bit HQQ-style,
+   or degraded mixed recipe) to show the breakage. If the degradation is not
+   spectacular, that is also a result to tell ("modern methods
+   are robust down to 4-bit").
 
-- **Sortie** : le même 27B compressé, mesuré aux 3 paliers
-- **Gain attendu** : ~3x vitesse décode, ~3,4x mémoire (56 Go → ~16 Go)
-- **Insight** : la quantization optimise la lecture mémoire, pas le calcul — le
-  modèle reste un dense qui génère token par token
-- **Point de vigilance** : les blocs *Gated DeltaNet* et l'encodeur vision ne
-  sont pas des `Linear` standard. Si un palier ne se charge pas ou casse la
-  qualité, la recette de repli est une **recette mixte** : garder ces couches
-  (et le ViT) en BF16/FP8, ne quantizer que les projections d'attention et les
-  MLP. Ce repli est un résultat pédagogique, pas un échec.
+- **Output**: the same compressed 27B, measured at the 3 tiers
+- **Expected gain**: ~3x decode speed, ~3.4x memory (56 GB → ~16 GB)
+- **Insight**: quantization optimizes memory reads, not compute — the
+  model remains a dense one generating token by token
+- **Watch point**: the *Gated DeltaNet* blocks and the vision encoder are
+  not standard `Linear`. If a tier does not load or breaks quality,
+  the fallback recipe is a **mixed recipe**: keep these layers
+  (and the ViT) in BF16/FP8, quantize only the attention projections and the
+  MLP. This fallback is a pedagogical result, not a failure.
 
-**Calibration NVFP4** (et tout palier qui en demande une) :
+**NVFP4 calibration** (and any tier that requires one):
 
-- **Dataset mixte obligatoire**, ~512 séquences de 2048 tokens, répartition :
-  - texte français généraliste (Wikipedia FR, presse, prose) — le gros du volume
-  - **code** (Python, shell, JSON, diffs) — protège les capacités de génération
-    de code
-  - **tool-calling / agentique** : trajectoires d'appels d'outils, schémas
-    JSON, refus quand aucun outil ne convient — protège exactement les
-    capacités que le protocole mesure (§6, point 5)
-  - une part de conversations avec traces de raisonnement, puisque le modèle
-    raisonne par défaut
-- **Règle de contamination** : aucun prompt du jeu d'évaluation
-  (`benchmarks/`) n'apparaît dans la calibration. Vérification automatique.
-- **Traçabilité** : hash du set de calibration consigné dans le manifeste du run.
+- **Mandatory mixed dataset**, ~512 sequences of 2048 tokens, breakdown:
+  - general French text (Wikipedia FR, press, prose) — the bulk of the volume
+  - **code** (Python, shell, JSON, diffs) — protects code generation
+    abilities
+  - **tool-calling / agentic**: tool-call trajectories, JSON
+    schemas, refusals when no tool fits — protects exactly the
+    abilities the protocol measures (§6, point 5)
+  - a share of conversations with reasoning traces, since the model
+    reasons by default
+- **Contamination rule**: no prompt from the evaluation set
+  (`benchmarks/`) appears in the calibration. Automatic verification.
+- **Traceability**: hash of the calibration set recorded in the run manifest.
 
-### Étape B — Distillation : création du draft model *(sur H100)*
+### Stage B — Distillation: creating the draft model *(on H100)*
 
-Le Qwen3.8 n'existe qu'en 27B : il n'y a pas de petit modèle natif compatible.
-On fabrique donc soi-même le draft model manquant.
+The Qwen3.8 only exists in 27B: there is no compatible small native model.
+So we build the missing draft model ourselves.
 
-- **B1. Génération du dataset** (le prof est le Qwen3.8-27B lui-même)
+- **B1. Dataset generation** (the teacher is the Qwen3.8-27B itself)
 
-  Le dataset est construit en **tranches**, parce que le taux d'acceptation
-  dépend de la distribution : le draft doit être bon là où la vidéo fait la
-  démonstration.
+  The dataset is built in **slices**, because the acceptance rate
+  depends on the distribution: the draft must be good where the video
+  demonstrates.
 
-  | Tranche | Contenu | Volume cible |
+  | Slice | Content | Target volume |
   |---|---|---|
-  | S1 | Conversationnel général FR + EN (OpenHermes-2.5, UltraChat) | ~120M tokens |
-  | S2 | **Code** (instructions de génération, correction, explication) | ~25M tokens |
-  | S3 | **Tool-calling / agentique** (schémas d'outils, appels chaînés, refus) | ~15M tokens |
-  | S4 | Traces de raisonnement (optionnel, selon budget) | +30-60M tokens |
+  | S1 | General conversational FR + EN (OpenHermes-2.5, UltraChat) | ~120M tokens |
+  | S2 | **Code** (generation, correction, explanation instructions) | ~25M tokens |
+  | S3 | **Tool-calling / agentic** (tool schemas, chained calls, refusals) | ~15M tokens |
+  | S4 | Reasoning traces (optional, depending on budget) | +30-60M tokens |
 
-  - Génération par vLLM sur 4×H100, avec le chat template du 3.8
-  - `reasoning_effort` **figé** pour la génération aussi : c'est ce qui rend le
-    budget de tokens prévisible (le thinking actif par défaut multiplierait le
-    volume par 2 à 4 et ferait exploser le créneau H100)
-  - Durée : ~14-24 h sur les 4×H100
-  - **Jeu de validation hors ligne** : ~2 000 prompts représentatifs des
-    tranches S2/S3 + des prompts de la démo finale, réservés et **jamais vus à
-    l'entraînement** — ils servent à prédire le taux d'acceptation sur H100
-    avant de consommer du temps Spark (§6, point 7)
+  - Generation by vLLM on 4×H100, with the 3.8 chat template
+  - `reasoning_effort` **frozen** for generation too: this is what makes the
+    token budget predictable (thinking active by default would multiply the
+    volume by 2 to 4 and blow up the H100 slot)
+  - Duration: ~14-24 h on the 4×H100
+  - **Offline validation set**: ~2,000 prompts representative of
+    slices S2/S3 + prompts from the final demo, held out and **never seen in
+    training** — they serve to predict the acceptance rate on H100
+    before consuming Spark time (§6, point 7)
 
-- **B2. SFT de l'élève**
-  - Entrée : Qwen3.5-2B initialisé tel quel + dataset B1
-  - Sortie : **draft model aligné statistiquement avec le 27B**
-  - Durée : ~6-10 h sur 1×H100
-  - **Option KD sur logits** : +5 h, à déclencher seulement si la porte G2
-    (§7) n'est pas franchie
+- **B2. SFT of the student**
+  - Input: Qwen3.5-2B initialized as is + B1 dataset
+  - Output: **draft model statistically aligned with the 27B**
+  - Duration: ~6-10 h on 1×H100
+  - **Logit KD option**: +5 h, to be triggered only if gate G2
+    (§7) is not passed
 
-### Étape C — Speculative decoding : la convergence
+### Stage C — Speculative decoding: the convergence
 
-Quatre bras, mesurés avec le même protocole :
+Four arms, measured with the same protocol:
 
-- **C1. MTP natif seul** — les têtes MTP du 27B, γ ∈ {1,3} (référence : les
-  stacks communautaires utilisent `MTP3`). C'est le bras « gratuit ».
-- **C2. Draft Qwen3.5-2B non distillé** — résultat volontairement montré :
-  gains décevants, taux d'acceptation faible. C'est le contrôle qui **prouve**
-  l'utilité de l'étape B.
-- **C3. Draft distillé** (issu de l'étape B) — le cœur de la vidéo.
-- **C4. MTP + draft distillé** — si la version de vLLM le permet, sinon
-  documenté comme limite de l'outil.
+- **C1. Native MTP alone** — the 27B's MTP heads, γ ∈ {1,3} (reference: community
+  stacks use `MTP3`). This is the "free" arm.
+- **C2. Undistilled Qwen3.5-2B draft** — result deliberately shown:
+  disappointing gains, low acceptance rate. This is the control that **proves**
+  the usefulness of Stage B.
+- **C3. Distilled draft** (from Stage B) — the heart of the video.
+- **C4. MTP + distilled draft** — if the vLLM version allows it, otherwise
+  documented as a tool limitation.
 
-**Protocole de γ** : γ n'est pas deviné sur Spark. Le gain théorique du
-speculative decoding vaut
+**γ protocol**: γ is not guessed on Spark. The theoretical gain of
+speculative decoding is
 
 ```
        1 - α^(γ+1)
-S  =  ─────────────────        α = taux d'acceptation, c = coût du draft
-       (1 - α) · (γ·c + 1)         exprimé en fraction du coût du target
+S  =  ─────────────────        α = acceptance rate, c = draft cost
+       (1 - α) · (γ·c + 1)         expressed as a fraction of the target cost
 ```
 
-`α` et `c` sont mesurés **hors ligne sur H100** (`scripts/offline_acceptance.py`,
-balayage γ ∈ {1,3,5,7}), et seuls les 2 meilleurs candidats sont validés sur
-Spark. Le taux d'acceptation est mesuré **séparément sur les segments de
-raisonnement et sur la réponse finale** : c'est là qu'un élève 2B décroche, et
-c'est une mesure inédite et intéressante à montrer.
+`α` and `c` are measured **offline on H100** (`scripts/offline_acceptance.py`,
+sweep γ ∈ {1,3,5,7}), and only the 2 best candidates are validated on
+Spark. The acceptance rate is measured **separately on the reasoning segments
+and on the final answer**: this is where a 2B student falls off, and
+this is a novel measurement that is interesting to show.
 
-**Vérification d'exactitude (obligatoire, et très visuelle)** : en greedy, le
-speculative decoding avec vérification est **exact**. On valide donc C1-C4 par
-un **test d'identité token-à-token** face au target seul, sur les 30 prompts
-qualitatifs. C'est la preuve que l'accélération est gratuite en qualité — et
-cela remplace une campagne qualité complète, qui serait du temps perdu.
+**Exactness verification (mandatory, and very visual)**: in greedy, the
+speculative decoding with verification is **exact**. We therefore validate C1-C4 by
+a **token-by-token identity test** against the target alone, on the 30 qualitative
+prompts. This is the proof that the speedup is free in quality — and
+it replaces a full quality campaign, which would be wasted time.
 
-- **Sortie** : qualité du 27B, vitesse multipliée, γ optimal, coût du draft
-- **Insight clé** : le speculative decoding n'accélère que si le draft prédit
-  comme le target — d'où la nécessité de la distillation
-- **Bonus Spark** : le décode batch=1 y est memory-bound, conditions idéales :
-  vérifier γ+1 tokens coûte ≈ une seule lecture des poids du target
+- **Output**: quality of the 27B, multiplied speed, optimal γ, draft cost
+- **Key insight**: speculative decoding only speeds up if the draft predicts
+  like the target — hence the need for distillation
+- **Spark bonus**: batch=1 decoding there is memory-bound, ideal conditions:
+  verifying γ+1 tokens costs ≈ a single read of the target weights
 
-### Étape D — KV cache & serving *(la marche qui manque au débit)*
+### Stage D — KV cache & serving *(the step missing from throughput)*
 
-Le speculative decoding attaque le décodage. L'autre moitié du problème est le
-prefill et la gestion du cache. C'est aussi le terrain de jeu vLLM du projet.
+Speculative decoding attacks decoding. The other half of the problem is
+prefill and cache management. It is also the project's vLLM playground.
 
-Optimisations à tester une par une, en **A/B à variable unique**, sur la
-configuration gagnante de l'étape C :
+Optimizations to test one by one, in **single-variable A/B**, on the
+winning configuration from Stage C:
 
-1. **FP8 KV cache** (`--kv-cache-dtype fp8`) — à noter : avec l'attention
-   hybride, seule une couche sur quatre a un KV cache ; mesurer le gain réel
-   est en soi un résultat.
-2. **Chunked prefill** (`--max-num-batched-tokens`) — effet direct sur le TTFT
-   en contexte long.
-3. **Prefix caching** — décisif pour les prompts système / outils répétés.
-4. **CUDA graphs** et `--enforce-eager` — arbitrage vitesse / déterminisme.
-5. **Continuous batching** : `--max-num-seqs` croissant, pour tracer la courbe
-   débit vs latence (le Spark est mono-utilisateur, mais la courbe est
-   pédagogique).
+1. **FP8 KV cache** (`--kv-cache-dtype fp8`) — note: with hybrid
+   attention, only one layer in four has a KV cache; measuring the real gain
+   is a result in itself.
+2. **Chunked prefill** (`--max-num-batched-tokens`) — direct effect on TTFT
+   in long context.
+3. **Prefix caching** — decisive for repeated system / tool prompts.
+4. **CUDA graphs** and `--enforce-eager` — speed / determinism trade-off.
+5. **Continuous batching**: `--max-num-seqs` increasing, to plot the
+   throughput vs latency curve (the Spark is single-user, but the curve is
+   pedagogical).
 
-**Règle** : toute variante qui ne tient pas dans le bruit (§6.1) est rejetée et
-documentée comme telle. Une optimisation rejetée est un résultat publiable.
+**Rule**: any variant that does not hold within the noise (§6.1) is rejected and
+documented as such. A rejected optimization is a publishable result.
 
-- **Sortie** : la configuration de serving finale, et la décomposition
-  « ce qui vient de la quantization / du draft / du serving »
+- **Output**: the final serving configuration, and the breakdown
+  "what comes from quantization / draft / serving"
 
-### Étape E — Climax vidéo
+### Stage E — Video climax
 
-Course finale sur Spark : baseline BF16 vs pipeline complet (27B NVFP4 + draft
-distillé + config de serving de l'étape D), même question, chronomètre à
-l'écran. Tableau cumulé des gains étape par étape.
+Final race on Spark: BF16 baseline vs full pipeline (27B NVFP4 + distilled
+draft + serving config from Stage D), same question, stopwatch on
+screen. Cumulative table of gains stage by stage.
 
-- Même `reasoning_effort` des deux côtés, et **nombre de tokens de raisonnement
-  affiché** à côté du chrono
-- **Contrôle « pourquoi pas un modèle plus petit ? »** : une ligne de référence
-  avec un modèle plus petit servi à débit comparable (famille 3.5/3.6, MoE à
-  quelques milliards d'actifs). C'est la première objection de l'audience et
-  elle se ferme pour ~1 h de Spark.
+- Same `reasoning_effort` on both sides, and **number of reasoning tokens
+  displayed** next to the stopwatch
+- **"Why not a smaller model?" control**: a reference line
+  with a smaller model served at comparable throughput (3.5/3.6 family, MoE with
+  a few billion active). This is the audience's first objection and
+  it is closed for ~1 h of Spark.
 
 ---
 
-## 5. Le décor : la physique du problème
+## 5. The set: the physics of the problem
 
-Segment « la physique » de la vidéo, et garde-fou contre les promesses
-exagérées. Le Spark a ~273 Go/s de bande passante mémoire unifiée :
+"Physics" segment of the video, and a guardrail against exaggerated
+promises. The Spark has ~273 GB/s of unified memory bandwidth:
 
-| Configuration | Poids lus / token | Plafond théorique batch=1 |
+| Configuration | Weights read / token | Theoretical ceiling batch=1 |
 |---|---|---|
-| BF16 | ~56 Go | **≈ 5 tokens/s** |
-| 4-bit (NVFP4) | ~16 Go | **≈ 17 tokens/s** |
-| 4-bit + speculative decoding | ~16 Go, γ+1 tokens vérifiés | **≈ 17 × tokens acceptés par passe** |
+| BF16 | ~56 GB | **≈ 5 tokens/s** |
+| 4-bit (NVFP4) | ~16 GB | **≈ 17 tokens/s** |
+| 4-bit + speculative decoding | ~16 GB, γ+1 tokens verified | **≈ 17 × tokens accepted per pass** |
 
-Le speculative decoding ne dépasse pas ce plafond : il augmente le nombre de
-tokens produits **par lecture des poids**. Avec α = 0,7 et γ = 3, on accepte en
-moyenne ~2,5 tokens par passe de target → plafond ≈ 40 tokens/s. Les chiffres
-communautaires sur GB10 (19-40 tokens/s selon le type de contenu) sont cohérents
-avec ce calcul.
+Speculative decoding does not exceed this ceiling: it increases the number of
+tokens produced **per read of the weights**. With α = 0.7 and γ = 3, we accept on
+average ~2.5 tokens per target pass → ceiling ≈ 40 tokens/s. The community
+figures on GB10 (19-40 tokens/s depending on content type) are consistent
+with this calculation.
 
-**Conséquence narrative** : le « 10x » du titre ne peut pas venir du seul
-tokens/s. Il vient du temps total jusqu'à la réponse, et il faut être explicite
-sur la part qui vient de la vitesse et la part qui vient du nombre de tokens.
+**Narrative consequence**: the "10x" of the title cannot come from
+tokens/s alone. It comes from total time to the answer, and we must be explicit
+about the share that comes from speed and the share that comes from the number of tokens.
 
 ---
 
-## 6. Protocole d'évaluation (uniforme à chaque étape)
+## 6. Evaluation protocol (uniform at each stage)
 
-Sur DGX Spark, mêmes prompts et paramètres à chaque mesure, tout passe par
-vLLM. Mesures via `vllm bench` + wrapper `scripts/bench_spark.py` + métriques
-Prometheus de vLLM.
+On DGX Spark, same prompts and parameters at each measurement, everything goes through
+vLLM. Measurements via `vllm bench` + `scripts/bench_spark.py` wrapper + Prometheus
+metrics from vLLM.
 
-1. **Vitesse** : tokens/s en décodage (batch=1), time-to-first-token (TTFT),
-   et — pour la vidéo — temps total jusqu'à la réponse complète.
-   **3 runs par mesure** (variance thermique du Spark), médiane et p95.
-2. **Mémoire** : mémoire unifiée peak, échantillonnée **hors vLLM**
-   (`tegrastats`), pas seulement le chiffre rapporté par le moteur.
-3. **Énergie** : puissance moyenne (W) pendant le run. Gratuit à collecter,
-   très parlant en vidéo.
-4. **Qualité — perplexité** ⭐ : held-out Wikipédia FR (~200k tokens). Métrique
-   la plus sensible aux dégradations fines de quantization :
-   FP8 ≈ +0-2% PPL · 4-bit ≈ +2-5% · méthodes agressives ≈ +20%+.
-   - **Calcul sur texte brut** : ni chat template, ni raisonnement. Fenêtres
-     glissantes de 512 tokens, pour éviter les effets de contexte et de cache.
-   - Procédure documentée dans le script, pas dans un notebook.
-5. **Qualité — capacités générales** : `benchmarks/quality/quality-200.jsonl`,
-   **en complément** des autres niveaux :
-   - 180 items auto-gradés, grading déterministe : gsm8k (80, exact match
-     numérique), humaneval (40, exécution de code + tests), ifeval (40, suivi
-     strict d'instructions), agentic_coding (20, exécution)
-   - ⚠️ Les 20 items `hard_reasoning` (grading `manual`) sont **exclus du
-     score** (non reproductibles) ; réservés à d'éventuelles démonstrations
-     qualitatives
-   - **Prérequis avant usage** : (a) les 20 items `agentic_coding` n'ont pas de
-     tests — leur champ `reference` est un placeholder (`"exec+asserts"`) qui
-     laisse le modèle écrire ses propres asserts ; ils doivent être **réécrits
-     avec de vrais tests externes** avant de compter dans le score, sinon on
-     mesure de l'auto-notation ; (b) toute exécution de code généré passe par un
-     **sandbox** (conteneur sans réseau, timeouts, FS jetable)
-   - **Extraction des réponses** : le raisonnement est retiré avant de grader
-     (le thinking est actif par défaut) ; l'extracteur est testé sur des sorties
-     réelles, pas supposé
-   - Résolution statistique : avec 180 items, l'erreur-type est de ±3,7 pts et
-     une comparaison **non appariée** ne détecte rien sous ~7-8 pts. Les écarts
-     FP8/BF16 attendus sont dans ce bruit → **la comparaison se fait item par
-     item, appariée (McNemar)**, pas sur les totaux. La perplexité reste la
-     métrique fine.
-   - Contenu en anglais : normal, les dégradations sont corrélées entre langues ;
-     le FR reste couvert par la perplexité wiki-FR et les prompts qualitatifs
-6. **Qualité — agentique** ⭐ (Qwen3.8 excelle dans ce domaine, il faut pouvoir
-   vérifier que l'optimisation ne casse pas ses capacités phares) :
-   - Sous-ensemble figé de **BFCL** (~300 cas, single/multi-turn tool calling,
-     scoring déterministe)
-   - **Mini bench tool-calling maison** : 30-50 tâches graduées (appel simple,
-     choix parmi outils proches, appels chaînés, refus quand aucun outil ne
-     convient), outils factices, scoring automatique (JSON valide ? bon outil ?
-     bons arguments ?) — reproductible, gratuit et très visuel en vidéo
-   - Exclus (trop lourds/bruités pour détecter une dégradation fine) :
-     SWE-bench, WebArena, OSWorld… cités comme références à l'écran uniquement
-7. **Speculative decoding uniquement** : taux d'acceptation du draft (métriques
-   vLLM), **séparément sur les segments de raisonnement et de réponse**, plus
-   le test d'identité token-à-token (§ étape C).
-8. **Qualitatif** : 30 prompts diversifiés figés, réponses en greedy
-   (température 0, comparables entre checkpoints), archivées par étape —
-   matériau brut pour la vidéo.
+1. **Speed**: decode tokens/s (batch=1), time-to-first-token (TTFT),
+   and — for the video — total time to the complete answer.
+   **3 runs per measurement** (thermal variance of the Spark), median and p95.
+2. **Memory**: peak unified memory, sampled **outside vLLM**
+   (`tegrastats`), not just the figure reported by the engine.
+3. **Energy**: average power (W) during the run. Free to collect,
+   very telling on video.
+4. **Quality — perplexity** ⭐: held-out Wikipedia FR (~200k tokens). Metric
+   most sensitive to fine quantization degradations:
+   FP8 ≈ +0-2% PPL · 4-bit ≈ +2-5% · aggressive methods ≈ +20%+.
+   - **Computation on raw text**: no chat template, no reasoning. Sliding
+     windows of 512 tokens, to avoid context and cache effects.
+   - Procedure documented in the script, not in a notebook.
+5. **Quality — general abilities**: `benchmarks/quality/quality-200.jsonl`,
+   **in addition to** the other levels:
+   - 180 self-graded items, deterministic grading: gsm8k (80, numeric
+     exact match), humaneval (40, code execution + tests), ifeval (40, strict
+     instruction following), agentic_coding (20, execution)
+   - ⚠️ The 20 `hard_reasoning` items (grading `manual`) are **excluded from the
+     score** (not reproducible); reserved for possible qualitative
+     demonstrations
+   - **Prerequisite before use**: (a) the 20 `agentic_coding` items have no
+     tests — their `reference` field is a placeholder (`"exec+asserts"`) that
+     lets the model write its own asserts; they must be **rewritten
+     with real external tests** before counting in the score, otherwise we
+     measure self-grading; (b) any execution of generated code goes through a
+     **sandbox** (network-less container, timeouts, disposable FS)
+   - **Answer extraction**: reasoning is removed before grading
+     (thinking is active by default); the extractor is tested on real outputs,
+     not assumed
+   - Statistical resolution: with 180 items, the standard error is ±3.7 pts and
+     an **unpaired** comparison detects nothing below ~7-8 pts. The expected
+     FP8/BF16 differences are within this noise → **the comparison is done item by
+     item, paired (McNemar)**, not on the totals. Perplexity remains the fine
+     metric.
+   - English content: normal, degradations are correlated across languages;
+     FR remains covered by wiki-FR perplexity and the qualitative prompts
+6. **Quality — agentic** ⭐ (Qwen3.8 excels in this area, we must be able to
+   verify that the optimization does not break its flagship abilities):
+   - Frozen subset of **BFCL** (~300 cases, single/multi-turn tool calling,
+     deterministic scoring)
+   - **Home-made mini tool-calling bench**: 30-50 graduated tasks (simple call,
+     choice among close tools, chained calls, refusal when no tool
+     fits), fake tools, automatic scoring (valid JSON? right tool?
+     right arguments?) — reproducible, free and very visual on video
+   - Excluded (too heavy/noisy to detect fine degradation):
+     SWE-bench, WebArena, OSWorld… cited as on-screen references only
+7. **Speculative decoding only**: draft acceptance rate (vLLM
+   metrics), **separately on the reasoning and answer segments**, plus
+   the token-by-token identity test (§ Stage C).
+8. **Qualitative**: 30 frozen diversified prompts, greedy answers
+   (temperature 0, comparable between checkpoints), archived per stage —
+   raw material for the video.
 
-### 6.1 Déterminisme et comparabilité
+### 6.1 Determinism and comparability
 
-- Le greedy de vLLM n'est pas bit-à-bit déterministe selon la composition des
-  batchs. Fixer la composition, et si nécessaire `--enforce-eager` ou les
-  kernels batch-invariants.
-- Mesurer et **rapporter la variance** : elle fait partie du résultat.
-- Si deux configurations diffèrent de moins de 2 écarts-types, elles sont
-  déclarées équivalentes.
+- vLLM's greedy is not bit-for-bit deterministic depending on batch
+  composition. Fix the composition, and if necessary `--enforce-eager` or
+  batch-invariant kernels.
+- Measure and **report the variance**: it is part of the result.
+- If two configurations differ by less than 2 standard deviations, they are
+  declared equivalent.
 
-### 6.2 Hygiène de mesure Spark
+### 6.2 Spark measurement hygiene
 
-Run de chauffe systématique, mode d'alimentation figé, horodatage et
-température ambiante notés, aucun autre processus GPU, un point de mesure
+Systematic warm-up run, frozen power mode, timestamp and
+ambient temperature recorded, no other GPU process, a measurement point
 < 30 min.
 
-### 6.3 Le chat template n'est pas universel
+### 6.3 The chat template is not universal
 
-Le template du 3.8 est utilisé pour : la génération du dataset, les évaluations
-conversationnelles, les prompts qualitatifs, l'inférence finale.
-Il n'est **pas** utilisé pour la perplexité (texte brut, §6, point 4).
+The 3.8 template is used for: dataset generation, conversational
+evaluations, qualitative prompts, final inference.
+It is **not** used for perplexity (raw text, §6, point 4).
 
-### 6.4 Manifeste de run (obligatoire)
+### 6.4 Run manifest (mandatory)
 
-Chaque run écrit `benchmarks/runs/<run>/manifest.json` : digest de l'image
-vLLM, version vLLM, révision HF des modèles, recette de quantization et hash du
-set de calibration, `reasoning_effort`, γ, mode MTP, hash du dataset
-d'entraînement, commit git, commande exacte. `benchmarks/results.md` agrège
-tout le reste et sert de support au tableau final de la vidéo.
+Each run writes `benchmarks/runs/<run>/manifest.json`: vLLM image digest,
+vLLM version, HF revision of the models, quantization recipe and hash of the
+calibration set, `reasoning_effort`, γ, MTP mode, training dataset
+hash, git commit, exact command. `benchmarks/results.md` aggregates
+everything else and serves as the basis for the video's final table.
 
----
+### 6.5 Baseline — the reference measurement suite
 
-## 7. Budget GPU H100
+The baseline is not a score: it is a **reference artifact** (BF16 logits,
+perplexity, speed figures) against which each variant is diffed. It is
+frozen **before** any optimization, and it is gate G0 (§7).
 
-| Tâche | Durée estimée |
+#### 6.5.1 We do not follow the model card's benchmark list
+
+The figures on the HF page are **capability claims**, not
+degradation measurement instruments: they are produced in BF16, with
+non-reproducible agentic harnesses (Claude Code, 256K context, `avg@3`,
+8 h timeouts) and paid judges. Three of them are moreover
+**in-house and unpublished**.
+
+| Card benchmark | Verdict |
 |---|---|
-| Calibration NVFP4 (recette mixte) | ~1-2 h sur 1×H100 |
-| Génération dataset par le 27B (B1, tranches S1-S3) | 14-24 h sur 4×H100 |
-| Tranche S4 (traces de raisonnement), optionnelle | +4-8 h sur 4×H100 |
-| SFT élève 2B (B2) | 6-10 h sur 1×H100 |
-| Balayage hors ligne du taux d'acceptation et de γ | ~1-2 h sur 1×H100 |
-| Option KD logits | +5 h sur 1×H100 |
+| GPQA Diamond | ✅ **Kept** — public, 198 MCQ, deterministic, cheap. Ceiling effect (89.2) → insensitive used alone |
+| IFBench | ✅ **Kept** — string verification; instruction following is the first ability quantization breaks |
+| LiveCodeBench v6 | ⚠️ Public but **drifting** (contest data) + execution sandbox → freeze a snapshot, otherwise HumanEval+ / BigCodeBench |
+| HLE | ⚠️ Judged by an LLM → not reproducible. Set aside (or frozen subset without a judge) |
+| Terminal Bench 2.1 · SWE-bench Pro · DeepSWE 1.1 · NL2Repo-Bench · Agents' Last Exam | ❌ Agentic harnesses + API judges + 256K. **Cited on screen as reference only** (already §6, point 6) |
+| QwenSWEBench · CoWorkBench · JobBench | ❌ In-house, unpublished → not runnable |
+| VL table (MathVision, RealWorldQA, OmniDocBench…) | ❌ Out of scope (§1) |
 
-**Consommation** : ~75-120 GPU-heures, soit **~20-30 h de mur** en séquentiel
-sur le cluster. Sur une fenêtre de 3 jours consécutifs, on se fixe une **règle
-de réserve de 50 %** : on ne planifie rien au-delà de ~36 h de mur, le reste
-absorbant les itérations, les reprises et les régénérations de dataset.
+**Corollary**: "matching the card figures" is not an objective. They
+serve as a narrative marker, never as a target.
 
-### Portes go/no-go (pré-enregistrées)
+#### 6.5.2 The three criteria for selecting a benchmark
 
-| Porte | Moment | Critère | Si non franchie |
+| Criterion | Practical consequence |
+|---|---|
+| **Sensitivity** | Must see a 1-3 % weight perturbation. At n=198, GPQA-D has a standard error of ±2.2 pts → **only** paired tests and PPL/KL detect 4-bit breakage |
+| **Determinism** | No LLM judge, no agentic harness, no drifting data — otherwise the delta is not attributable to our change |
+| **BF16 cost** | 27B BF16 = 54 GB ÷ ~273 GB/s ≈ **~5 tok/s ceiling** in decoding. A generative benchmark costs ~4× more on the baseline than on the 4-bit model → favor **prefill-only** measurements |
+
+#### 6.5.3 The baseline suite (blocks R0-R5)
+
+| Block | Content | Tool | GB10 cost |
 |---|---|---|---|
-| **G1** | Fin étape A | Le checkpoint NVFP4 se charge et génère dans vLLM sur GB10, PPL dans la bande attendue | Recette mixte (DeltaNet + ViT en BF16/FP8), puis re-test |
-| **G2** | Après B2, sur H100 | Taux d'acceptation ≥ 55-60 % sur le jeu de validation hors ligne | KD sur logits (+5 h) puis plus de données ; si < 40 % après itération → le MTP natif devient le bras final de la vidéo, et l'échec de la distillation devient le chapitre |
-| **G3** | Étape D | L'optimisation sort du bruit (> 2 écarts-types) | Rejetée et documentée |
+| **R0** | **Public anchor**: GPQA-D + IFEval, temp 0, thinking off. Role: prove that the chat template, the thinking removal and the grader are correct — not match the card | `lm-eval` | ~1 h |
+| **R1** | **Weight quality** ⭐: (a) PPL wiki-FR 200k, 512 windows (§6, point 4); (b) **KL + top-1 agreement vs frozen BF16 logits** (§6.5.5) | vLLM `prompt_logprobs` | minutes |
+| **R2** | **Task quality**: quality-200 + GPQA-D + BFCL subset, **item-by-item (McNemar)** comparison, never on the totals | home-made grader + `vllm bench serve` (built-in **BFCL** dataset: `--bfcl-categories simple,live_simple,multiple`) | one night |
+| **R3** | **Speed** (title metric): `vllm bench latency` batch=1 (in 512/4096, out 128/512); prefill ramp (1k/8k/32k/128k); `vllm bench serve` `--max-num-seqs` sweep 1/4/8/16/32; peak unified memory (`tegrastats`) + average power → tokens/joule. 3 runs, median + p95 (§6, points 1-3) | `vllm bench` + `bench_spark.py` | ~1 h |
+| **R4** | **Speculation**: acceptance rate and length by position γ, sweep γ ∈ {1,2,3,5}, token-by-token identity test — **replayed on the quantized stack** (the MTP heads are quantized too, and the acceptance rate there is more fragile than accuracy) | `vllm bench serve` (built-in *spec bench* dataset: `--spec-bench-category`, `--spec-bench-output-len`) + Prometheus | ~1 h |
+| **R5** | **Long context**: NIAH or RULER-lite at 32k/128k. **Absent from §6 today**; to be run as soon as the KV cache is quantized (Stage D) | home-made script | ~1 h |
+
+**Mandatory arms** to cross with each block: `reasoning_effort`
+(low/medium/xhigh) and thinking on/off are **explicit arms**, not implicit
+settings, and the **number of reasoning tokens is reported with the
+stopwatch** (§1, §6, point 1).
+
+#### 6.5.4 Baseline time budget — the rule that makes measurement possible
+
+Arithmetic: 54 GB of BF16 weights → ~5 tok/s theoretical, 3.5-4.5 tok/s real.
+A generative evaluation in thinking is therefore over budget:
+
+| Run | Estimated cost | Verdict |
+|---|---|---|
+| GPQA-D (198 items) at `xhigh` (~7.5k reasoning tokens/item) | **~100 h** | ❌ infeasible |
+| The same in non-thinking (~600 tokens/item) | ~8 h | ✅ one night |
+| quality-200 (180 self-graded items, ~400 tokens) in non-thinking | ~5 h | ✅ one night |
+| PPL + KL (prefill only, 200k tokens) | **minutes** | ✅ at will |
+
+**Rule**: the **differential** quality suites run in **non-thinking
+(or `reasoning_effort=low`), temperature 0, `max_tokens` fixed**; thinking
+mode is reserved for a frozen demonstration set of 20-50 items. A single
+setting for all compared variants — internal consistency is what
+matters, not resemblance to the card. Execution order: prototype the
+harness on the 4-bit model (fast), then run the BF16 baseline only
+**once**, at night.
+
+#### 6.5.5 Three mandatory additions to protocol §6
+
+1. **KL vs reference logits** (the most important). This is the standard
+   quantization instrument: more sensitive than PPL and almost free. On a
+   frozen input set (512-2048 tokens), we freeze the BF16 logits (top-k), then
+   compute **KL / JS + top-1 agreement** for each variant. Decisive advantage: it
+   **localizes** the breakage (by layer, by position), where an aggregate score
+   drowns it. → `scripts/dump_ref_logits.py`, `scripts/kl_vs_ref.py`, artifacts in
+   `benchmarks/ref_logits/`.
+2. **A public anchor** (R0). A home-made set of 200 items with home-made numeric/code
+   extractors can be silently broken. A GPQA-D + IFEval run
+   in `lm-eval` recalibrates the harness — and verifies along the way that the
+   hybrid architecture (Gated DeltaNet) does not force a slow or incompatible path in
+   transformers.
+3. **A long-context probe** (R5), as soon as the KV cache enters the
+   scope.
+
+#### 6.5.6 Facts verified on the machine (16/10/2026)
+
+- vLLM **0.31.0** and transformers **5.20.1** in `.venv`; subcommands
+  `bench latency|serve|throughput|sweep|startup|mm-processor`.
+- **MTP**: the `qwen3_5_mtp` method **exists** in this version (as well as
+  generic `mtp`) → form to test:
+  `--speculative-config '{"method":"qwen3_5_mtp","num_speculative_tokens":3}'`.
+  To be reconfirmed on the pinned image (§5, prerequisite 4).
+- Speculation Prometheus metrics already available:
+  `vllm:spec_decode_num_accepted_tokens_total`, `..._num_draft_tokens_total`,
+  `..._num_drafts_total`, `..._num_accepted_tokens_per_pos_total` → acceptance rate and
+  length by position, without home-made instrumentation.
+- Datasets **built into** `vllm bench serve`: BFCL (`--bfcl-categories`) and
+  *spec bench* (`--spec-bench-category`, `--spec-bench-output-len`) → R2 and R4
+  without a home-made harness (exact `--dataset-name` names to be confirmed by
+  `vllm bench serve --help=all`).
+- `lm-eval` **absent** from the venv → `uv pip install -U "lm-eval[vllm]"`.
+- **BF16 weights present**: 18 shards ≈ 54 GB under
+  `~/.cache/huggingface/hub/models--Qwen--Qwen3.8-27B` → the baseline can
+  start without downloading.
+- Third-party comparison points already cached (**not** baselines):
+  `ggml-org/Qwen3.8-27B-GGUF` (20 GB),
+  `starkweatherdigital/qwen3.8-flash-next-nvfp4` (131 GB).
+- **First reference measurement (16/10/2026, BF16, batch=1, temp 0)**:
+  **4.36 tok/s** in decoding (median of 3 runs, dispersion 2.3 %), TTFT 0.51 s,
+  ITL p50 0.24 s. Ceiling reminder: 54 GB ÷ ~273 GB/s ≈ 5.05 tok/s → **86 % of the
+  memory ceiling**. Raw artifact: `benchmarks/runs/20261016-224112/probe.json`.
+- **`reasoning_effort` is a real template parameter**
+  (`resolved_reasoning_effort = reasoning_effort|default('xhigh')`, injected as a
+  system message). But on a trivial prompt, `low` and `xhigh` give the same
+  reasoning length: the test is only decisive on a hard prompt
+  (§6.5.3, part `d` of the probe). Reasoning is produced **in English**
+  even when the answer is in French.
+- **The tool-call stream is not incremental**: vLLM only streams the
+  `tool_calls` fragments once the complete block is received → TTFT ≈ total duration and
+  `decode_s = 0`. Consequence: for the mini tool-calling bench (§6, point 6), the
+  timing metrics must come from **non-streamed** requests.
 
 ---
 
-## 8. Risques & mitigations
+## 7. H100 GPU budget
 
-| Risque | Mitigation |
+| Task | Estimated duration |
 |---|---|
-| Tokenizer incompatible entre 3.5 et 3.8 | ✅ Levé : vérifié compatible (§3.4) ; contrat durci et pinné avant l'étape B (§3.5) |
-| Le draft distillé ne bat pas le MTP natif | Le MTP est un bras de plein droit (§ étape C) : le résultat est publiable tel quel, et c'est une conclusion honnête et rare |
-| vLLM inutilisable sur GB10, ou mode MTP absent de l'image | Étape 0 bloquante : image pinnée par digest, mode MTP identifié avant toute mesure. Le choix « vLLM uniquement » est un objectif d'apprentissage assumé, donc on investit dans l'image, pas dans un second moteur |
-| Recette NVFP4 incompatible avec les blocs Gated DeltaNet / le ViT | Recette mixte, couches non standard en BF16/FP8 ; mesurer l'impact réel plutôt que de supposer |
-| Le thinking par défaut brouille toutes les mesures et explose le budget dataset | `reasoning_effort` figé et documenté à chaque étape, y compris pour la génération B1 ; nombre de tokens de raisonnement affiché avec le chrono |
-| FP8 non supporté sur le GB10 du Spark | Vérifié à l'étape 0 ; sinon on saute au palier NVFP4, aucun impact sur la suite |
-| Dégradation peu visible en quantization moderne | La perplexité reste sensible ; sinon c'est un résultat narratif (« robuste jusqu'à 4-bit ») |
-| Acceptance rate faible du draft distillé | Mesuré hors ligne sur H100 avant tout run Spark ; porte G2 : KD sur logits, plus de données, ou bascule sur le MTP |
-| Items `agentic_coding` non valides (auto-notation) | Réécriture avec tests externes + sandbox **avant** de produire le moindre score (§6, point 5) |
-| Blocage bloquant imprévu sur le 3.8 | Fallback global : Qwen3.5-27B (pipeline identique, petits frères natifs disponibles) |
-| Calibration contaminée par les prompts d'éval | Vérification automatique d'intersection, hash du set dans le manifeste |
-| Dérive de reproductibilité (image, révisions, dataset) | Manifeste de run obligatoire (§6.4) ; repo sous git dès maintenant |
+| NVFP4 calibration (mixed recipe) | ~1-2 h on 1×H100 |
+| Dataset generation by the 27B (B1, slices S1-S3) | 14-24 h on 4×H100 |
+| Slice S4 (reasoning traces), optional | +4-8 h on 4×H100 |
+| 2B student SFT (B2) | 6-10 h on 1×H100 |
+| Offline sweep of acceptance rate and γ | ~1-2 h on 1×H100 |
+| Logit KD option | +5 h on 1×H100 |
+
+**Consumption**: ~75-120 GPU-hours, i.e. **~20-30 h wall-clock** sequentially
+on the cluster. Over a 3-consecutive-day window, we set a **50 % reserve
+rule**: we plan nothing beyond ~36 h wall-clock, the rest
+absorbing iterations, resumptions and dataset regenerations.
+
+### Go/no-go gates (pre-registered)
+
+| Gate | Moment | Criterion | If not passed |
+|---|---|---|---|
+| **G0** | End of Step 0 | The public anchor (R0) runs, the BF16 logit reference is frozen (§6.5.5) and the full baseline is written to `benchmarks/results.md` | No optimization is launched: this is the foundation of all comparisons |
+| **G1** | End of Stage A | The NVFP4 checkpoint loads and generates in vLLM on GB10, PPL within the expected band | Mixed recipe (DeltaNet + ViT in BF16/FP8), then re-test |
+| **G2** | After B2, on H100 | Acceptance rate ≥ 55-60 % on the offline validation set | Logit KD (+5 h) then more data; if < 40 % after iteration → native MTP becomes the video's final arm, and the distillation failure becomes the chapter |
+| **G3** | Stage D | The optimization comes out of the noise (> 2 standard deviations) | Rejected and documented |
 
 ---
 
-## 9. Structure du repo (prévue)
+## 8. Risks & mitigations
+
+| Risk | Mitigation |
+|---|---|
+| Incompatible tokenizer between 3.5 and 3.8 | ✅ Cleared: verified compatible (§3.4); contract hardened and pinned before Stage B (§3.5) |
+| The distilled draft does not beat native MTP | MTP is an arm in its own right (§ Stage C): the result is publishable as is, and it is an honest and rare conclusion |
+| vLLM unusable on GB10, or MTP mode missing from the image | Blocking Step 0: image pinned by digest, MTP mode identified before any measurement. The "vLLM only" choice is an accepted learning objective, so we invest in the image, not in a second engine |
+| NVFP4 recipe incompatible with the Gated DeltaNet blocks / the ViT | Mixed recipe, non-standard layers in BF16/FP8; measure the real impact rather than assume |
+| Default thinking blurs all measurements and blows up the dataset budget | `reasoning_effort` frozen and documented at each stage, including for B1 generation; number of reasoning tokens displayed with the stopwatch |
+| FP8 not supported on the Spark's GB10 | Verified at Step 0; otherwise we skip to the NVFP4 tier, no impact on the rest |
+| Degradation barely visible with modern quantization | Perplexity remains sensitive; otherwise it is a narrative result ("robust down to 4-bit") |
+| The model card benchmarks become the target (agentic harnesses, API judges, 3 unpublished in-house) | §6.5.1: list mapped into verdicts; they remain narrative on-screen markers, never targets |
+| Generative baseline in thinking infeasible in wall-clock time (~100 h for GPQA-D) | §6.5.4: non-thinking or `effort=low`, temp 0, `max_tokens` fixed for the differential suites; thinking reserved for demos |
+| Quantization breakage invisible on aggregate scores (GPQA-D ±2.2 pts at n=198) | §6.5.5: KL vs reference logits as fine metric + paired comparison (McNemar) |
+| Low acceptance rate of the distilled draft | Measured offline on H100 before any Spark run; gate G2: logit KD, more data, or switch to MTP |
+| Invalid `agentic_coding` items (self-grading) | Rewriting with external tests + sandbox **before** producing any score (§6, point 5) |
+| Unexpected blocking blocker on the 3.8 | Global fallback: Qwen3.5-27B (identical pipeline, native little brothers available) |
+| Calibration contaminated by eval prompts | Automatic intersection check, set hash in the manifest |
+| Reproducibility drift (image, revisions, dataset) | Mandatory run manifest (§6.4); repo under git as of now |
+
+---
+
+## 9. Repo structure (planned)
 
 ```
 fastqwen/
-├── .gitignore                   # .env, cache/, checkpoints/, sorties HF
-├── .env                         # variables de config (chemins, ports, HF_TOKEN)
-├── project-plan.md              # ce fichier
-├── check_tokenizer_compat.py    # contrat de compatibilité (exigences dures §3.5)
+├── .gitignore                   # .env, cache/, checkpoints/, HF outputs
+├── .env                         # config variables (paths, ports, HF_TOKEN)
+├── project-plan.md              # this file
+├── pyproject.toml               # metadata + pytest config (package not installed)
+├── qwenbench/                   # reusable measurement core (unit 1)
+│   ├── metrics.py               # pure: TTFT, throughput, reasoning/answer split
+│   ├── sse.py                   # pure: SSE chunk parsing
+│   ├── client.py                # httpx: per-chunk timestamping, waiting, fingerprint
+│   └── report.py                # pure: medians + acceptance criteria (§6.5)
+├── tests/                       # offline tests (pytest, no server, no GPU)
+├── check_tokenizer_compat.py    # compatibility contract (hard requirements §3.5)
 ├── data/
-│   ├── prompts/                 # prompts d'évaluation + datasets générés
-│   └── calib/                   # set de calibration mixte (FR + code + tools)
+│   ├── prompts/                 # evaluation prompts + generated datasets
+│   └── calib/                   # mixed calibration set (FR + code + tools)
 ├── scripts/
-│   ├── generate_dataset.py      # B1 : génération par le prof (vLLM, H100),
-│   │                            #      tranches S1-S4 + jeu de validation
-│   ├── train_draft.py           # B2 : SFT de l'élève (+ option KD logits)
-│   ├── offline_acceptance.py    # C : taux d'acceptation + balayage de γ (H100)
-│   ├── quantize_nvfp4.py        # A : FP8 / NVFP4 / palier agressif (ModelOpt,
-│   │                            #     llm-compressor, recette mixte de repli)
-│   ├── build_calib_set.py       # A : set de calibration mixte + anti-contamination
-│   ├── build_eval_datasets.py   # corpus PPL wiki-FR, BFCL subset,
-│   │                            # mini tool-calling bench, 30 prompts qualitatifs
-│   ├── build_agentic_coding.py  # tests externes pour les 20 items agentic_coding
-│   ├── grade_quality200.py      # grader quality-200 (numeric_exact, exec sandboxé,
-│   │                            # ifeval_strict — 180 items, manual exclus)
-│   ├── verify_identity.py       # C : identité token-à-token greedy vs target
-│   └── bench_spark.py           # protocole uniforme (wrapper vllm bench + Prometheus)
+│   ├── probe.py                 # unit 1: startup probe (wiring + throughput)
+│   ├── generate_dataset.py      # B1: generation by the teacher (vLLM, H100),
+│   │                            #      slices S1-S4 + validation set
+│   ├── train_draft.py           # B2: student SFT (+ logit KD option)
+│   ├── offline_acceptance.py    # C: acceptance rate + γ sweep (H100)
+│   ├── quantize_nvfp4.py        # A: FP8 / NVFP4 / aggressive tier (ModelOpt,
+│   │                            #     llm-compressor, mixed fallback recipe)
+│   ├── build_calib_set.py       # A: mixed calibration set + anti-contamination
+│   ├── build_eval_datasets.py   # PPL wiki-FR corpus, BFCL subset,
+│   │                            # mini tool-calling bench, 30 qualitative prompts
+│   ├── build_agentic_coding.py  # external tests for the 20 agentic_coding items
+│   ├── grade_quality200.py      # quality-200 grader (numeric_exact, sandboxed exec,
+│   │                            # ifeval_strict — 180 items, manual excluded)
+│   ├── verify_identity.py       # C: greedy token-by-token identity vs target
+│   ├── bench_spark.py           # uniform protocol (vllm bench + Prometheus wrapper)
+│   ├── dump_ref_logits.py       # 6.5.5: freezes the reference BF16 logits (KL)
+│   ├── kl_vs_ref.py             # 6.5.5: KL/JS + top-1 agreement vs reference
+│   └── run_anchor.py            # 6.5.3 R0: public anchor GPQA-D + IFEval (lm-eval)
 └── benchmarks/
-    ├── quality/quality-200.jsonl # capacités générales (180 items auto-gradés,
-    │                             # 20 manual exclus)
+    ├── quality/quality-200.jsonl # general abilities (180 self-graded items,
+    │                             # 20 manual excluded)
     ├── ppl_corpus/wiki-fr-heldout.txt
-    ├── mcq/mmlu_subset.jsonl     # optionnel, référence reconnue à l'écran
-    ├── agentique/bfcl_subset.jsonl + toolcalling_mini.jsonl
+    ├── mcq/mmlu_subset.jsonl     # optional, recognized on-screen reference
+    ├── ref_logits/base-bf16/     # 6.5.5: frozen BF16 logits (KL metric)
+    ├── agentic/bfcl_subset.jsonl + toolcalling_mini.jsonl
     ├── prompts/eval_prompts.jsonl
-    ├── runs/<run>/manifest.json  # manifeste de chaque run (§6.4)
-    ├── samples/<run>/            # sorties greedy par étape
-    └── results.md                # tableau cumulé des résultats
+    ├── longcontext/niah_*.jsonl  # 6.5.3 R5: long-context probe (32k/128k)
+    ├── runs/<run>/manifest.json  # manifest of each run (§6.4)
+    ├── samples/<run>/            # greedy outputs per stage
+    └── results.md                # cumulative results table
 ```
 
 ---
 
-## 10. Références techniques
+## 10. Technical references
 
-Points de repère externes pour l'implémentation et pour situer nos chiffres
-(ce ne sont pas nos choix de stack : vLLM est le moteur unique du projet).
+External landmarks for the implementation and for situating our figures
+(these are not our stack choices: vLLM is the project's single engine).
 
-- Qwen 3.8 — composition de la famille, licences, thinking hybride, contexte,
-  architecture dense hybride :
+- Qwen 3.8 — family composition, licenses, hybrid thinking, context,
+  hybrid dense architecture:
   https://codersera.com/blog/qwen-3-8-model-lineup-2026/
-- Qwen3.5-2B (élève) : https://huggingface.co/Qwen/Qwen3.5-2B
-- Serving Qwen3.8-27B sur DGX Spark, protocole de benchmarking et A/B documentés :
+- Qwen3.5-2B (student): https://huggingface.co/Qwen/Qwen3.5-2B
+- Serving Qwen3.8-27B on DGX Spark, benchmarking protocol and documented A/B:
   https://github.com/amasu/dgx-spark-qwen38
-- vLLM + NVFP4 + MTP3 sur DGX Spark :
+- vLLM + NVFP4 + MTP3 on DGX Spark:
   https://github.com/drowzeys/keys-vLLm.0.27-Qwen3.8-NVFP4-MTP3-Single-DGX-Spark
-- Checkpoints NVFP4 avec têtes MTP pour sm_121 :
+- NVFP4 checkpoints with MTP heads for sm_121:
   https://huggingface.co/r0b0tlab/Qwen3.8-27B-NVFP4-MTP-sm121
-- Checkpoint AWQ W4A16 (référence de comparaison de format) :
+- AWQ W4A16 checkpoint (format comparison reference):
   https://huggingface.co/Ar4ikov/Qwen3.8-27B-AWQ-W4A16-ASYM
-- MTP en speculation, mesure de débit :
+- MTP in speculation, throughput measurement:
   https://github.com/julianmb/q38rocm
-- Documentation modèle vLLM (Qwen3.8-27B) :
+- vLLM model documentation (Qwen3.8-27B):
   https://docs.vllm.ai/projects/ascend/en/latest/tutorials/models/Qwen3.8-27B.html
