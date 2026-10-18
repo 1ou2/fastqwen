@@ -1,0 +1,238 @@
+{
+  "script": "check_tokenizer_compat.py",
+  "contract": "project-plan.md §3.5",
+  "checked_at": "2026-10-18T22:32:33.566572+02:00",
+  "models": {
+    "draft": {
+      "id": "Qwen/Qwen3.5-2B",
+      "revision": "15852e8c16360a2fea060d615a32b45270f8a8fc"
+    },
+    "target": {
+      "id": "Qwen/Qwen3.8-27B",
+      "revision": "1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0"
+    }
+  },
+  "files": [
+    {
+      "file": "tokenizer_config.json",
+      "draft_sha256": "49e2b6e395f959f077f1e992b338919c0d4a9732fc6e613995e06557f843500c",
+      "target_sha256": "b11349aafa7cdc6a320767cf7ceb29ed82f7eda5d65e8e0819e76f0ce947bf27",
+      "status": "different",
+      "severity": "warn"
+    },
+    {
+      "file": "tokenizer.json",
+      "draft_sha256": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+      "target_sha256": "0997f410c57a1f4e53b09e4be8f4a172d90edd9564368fb0847030937229b9f3",
+      "status": "different",
+      "severity": "warn"
+    },
+    {
+      "file": "vocab.json",
+      "draft_sha256": "ce99b4cb2983d118806ce0a8b777a35b093e2000a503ebde25853284c9dfa003",
+      "target_sha256": "ce99b4cb2983d118806ce0a8b777a35b093e2000a503ebde25853284c9dfa003",
+      "status": "identical",
+      "severity": "warn"
+    },
+    {
+      "file": "merges.txt",
+      "draft_sha256": "a9d356d7bdf1ef4949e3e748e95b8e10ad9d4e2e838eddc38a0a7b6b94d1db8d",
+      "target_sha256": "a9d356d7bdf1ef4949e3e748e95b8e10ad9d4e2e838eddc38a0a7b6b94d1db8d",
+      "status": "identical",
+      "severity": "warn"
+    },
+    {
+      "file": "special_tokens_map.json",
+      "draft_sha256": null,
+      "target_sha256": null,
+      "status": "absent",
+      "severity": "warn"
+    }
+  ],
+  "download_errors": {
+    "special_tokens_map.json": "absent from the pinned snapshot 1d4bf0f2ff60… (offline)"
+  },
+  "loaders": {
+    "draft": "AutoTokenizer",
+    "target": "AutoTokenizer"
+  },
+  "vocabulary": {
+    "draft_size": 248077,
+    "target_size": 248077,
+    "shared": 248077,
+    "base_size": 248077,
+    "draft_only_violations": {},
+    "target_only_violations": {},
+    "id_mismatches": {},
+    "id_mismatch_count": 0,
+    "draft_only": [],
+    "target_only": []
+  },
+  "special_tokens": {
+    "<|im_end|>": {
+      "draft": 248046,
+      "target": 248046,
+      "ok": true
+    },
+    "<|endoftext|>": {
+      "draft": 248044,
+      "target": 248044,
+      "ok": true
+    },
+    "<|vision_start|>": {
+      "draft": 248053,
+      "target": 248053,
+      "ok": true
+    },
+    "<|image_pad|>": {
+      "draft": 248056,
+      "target": 248056,
+      "ok": true
+    },
+    "<|vision_end|>": {
+      "draft": 248054,
+      "target": 248054,
+      "ok": true
+    },
+    "<|video_pad|>": {
+      "draft": 248057,
+      "target": 248057,
+      "ok": true
+    },
+    "<|im_start|>": {
+      "draft": 248045,
+      "target": 248045,
+      "ok": true
+    }
+  },
+  "chat_template": {
+    "sha256": "c3cf9e34abf4f9e36c2d72165aa9c132d3e2a725b6c2586aaa3a8af9d7a81041",
+    "cases": [
+      {
+        "name": "single_user",
+        "optional": false,
+        "ok": true,
+        "same_text": true,
+        "same_ids": true,
+        "length": 59,
+        "rendered_sha256": "7b0a0d3fbbd66824495da87e48338ec7358762b13e0bf304506b7ce3c18dc03e"
+      },
+      {
+        "name": "multi_turn",
+        "optional": false,
+        "ok": true,
+        "same_text": true,
+        "same_ids": true,
+        "length": 91,
+        "rendered_sha256": "4522cda6a4b61d26c0c9838deead1503d20d5f83e792f73927a8590ee1dbabe5"
+      },
+      {
+        "name": "reasoning_effort_low",
+        "optional": false,
+        "ok": true,
+        "same_text": true,
+        "same_ids": true,
+        "length": 51,
+        "rendered_sha256": "85c9f4c01a64ae14203e7c51599b046168970e3f159169157027559c2e1059e6"
+      },
+      {
+        "name": "tool_schema",
+        "optional": true,
+        "ok": true,
+        "same_text": true,
+        "same_ids": true,
+        "length": 313,
+        "rendered_sha256": "52be305b60624ffffa2aeb8327dbe7e96936d83c95f0389d1a28315605ffb0de"
+      }
+    ]
+  },
+  "functional": [
+    {
+      "text": "Bonjour, comment allez-vous aujourd'hui ?",
+      "ok": true,
+      "draft_length": 8,
+      "target_length": 8
+    },
+    {
+      "text": "Le speculative decoding accélère l'inférence des LLMs.",
+      "ok": true,
+      "draft_length": 15,
+      "target_length": 15
+    },
+    {
+      "text": "Il dit : « je ne crois pas qu'une vitesse de 100 tokens/s so",
+      "ok": true,
+      "draft_length": 24,
+      "target_length": 24
+    },
+    {
+      "text": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "ok": true,
+      "draft_length": 25,
+      "target_length": 25
+    },
+    {
+      "text": "🚀 emoji + mixed 中文 العربية text",
+      "ok": true,
+      "draft_length": 10,
+      "target_length": 10
+    },
+    {
+      "text": "<|im_start|>system\nYou are helpful.<|im_end|>",
+      "ok": true,
+      "draft_length": 8,
+      "target_length": 8
+    },
+    {
+      "text": "def f(x: int) -> int:\n    return x * 2\n",
+      "ok": true,
+      "draft_length": 17,
+      "target_length": 17
+    }
+  ],
+  "checks": [
+    {
+      "id": "files",
+      "ok": true,
+      "severity": "fail",
+      "detail": "all required files present; tolerated drift: tokenizer_config.json, tokenizer.json"
+    },
+    {
+      "id": "vocabulary",
+      "ok": true,
+      "severity": "fail",
+      "detail": "248077 shared tokens, base vocabulary 248077"
+    },
+    {
+      "id": "special_tokens",
+      "ok": true,
+      "severity": "fail",
+      "detail": "7 special tokens with identical IDs"
+    },
+    {
+      "id": "chat_template",
+      "ok": true,
+      "severity": "fail",
+      "detail": "4 template case(s) render and encode identically"
+    },
+    {
+      "id": "functional_encoding",
+      "ok": true,
+      "severity": "fail",
+      "detail": "7 texts encode identically"
+    },
+    {
+      "id": "detokenization",
+      "ok": true,
+      "severity": "fail",
+      "detail": "identical detokenization"
+    }
+  ],
+  "verdict": {
+    "ok": true,
+    "failed": [],
+    "warned": [],
+    "not_applicable": []
+  },
+  "exit_code": 0
+}
