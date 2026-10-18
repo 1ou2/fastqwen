@@ -63,6 +63,11 @@ DEFAULT_EXCLUSION_MANIFEST = ROOT / "benchmarks" / "validation" / "manifest.json
 DEFAULT_OUT_DIR = ROOT / "benchmarks" / "datasets"
 TEMPLATE_COPY = ROOT / "cache" / "tokenizers" / "target" / "tokenizer_config.json"
 
+#: The frozen tokenizer files live in `cache/` (gitignored), so a fresh clone —
+#: e.g. on the H100 — has no local copy. The committed contract artifact carries
+#: the same template hash, which keeps the manifest complete off-machine.
+CONTRACT_ARTIFACT = ROOT / "benchmarks" / "compat" / "tokenizer_contract.json"
+
 #: Chat template the 3.8 template is expected to be; recorded so a silent template
 #: change is visible in the manifest even when the server keeps the same URL.
 PROGRESS_EVERY = 50
@@ -95,14 +100,23 @@ def _teacher_revision(model: str) -> str | None:
 
 
 def _template_sha256() -> str | None:
-    """Hash of the frozen 3.8 chat template, as pinned by the tokenizer contract."""
-    if not TEMPLATE_COPY.is_file():
-        return None
-    config = json.loads(TEMPLATE_COPY.read_text())
-    template = config.get("chat_template")
-    if isinstance(template, list):
-        template = template[0].get("template") if template else None
-    return hashlib.sha256(template.encode()).hexdigest() if isinstance(template, str) else None
+    """Hash of the frozen 3.8 chat template, as pinned by the tokenizer contract.
+
+    Falls back to the committed contract artifact: the generation host is not the
+    measurement host, and a null template hash would make the run unreproducible
+    (§6.4).
+    """
+    if TEMPLATE_COPY.is_file():
+        config = json.loads(TEMPLATE_COPY.read_text())
+        template = config.get("chat_template")
+        if isinstance(template, list):
+            template = template[0].get("template") if template else None
+        if isinstance(template, str):
+            return hashlib.sha256(template.encode()).hexdigest()
+    if CONTRACT_ARTIFACT.is_file():
+        artifact = json.loads(CONTRACT_ARTIFACT.read_text())
+        return (artifact.get("chat_template") or {}).get("sha256")
+    return None
 
 
 def _load_exclusions(path: pathlib.Path) -> set[str]:
@@ -138,7 +152,15 @@ def _scan_totals(path: pathlib.Path) -> dict[str, int]:
     return totals
 
 
-def _print_plan(rows, excluded_count: int, args, output: pathlib.Path, resumed: int) -> None:
+def _print_plan(
+    rows,
+    excluded_count: int,
+    args,
+    output: pathlib.Path,
+    resumed: int,
+    revision: str | None,
+    template_sha256: str | None,
+) -> None:
     print("\n--- plan ---")
     print(f"  prompts      : {len(rows)} to generate ({resumed} already done, skipped)")
     print(f"  slices       : {slice_counts(rows)}")
@@ -146,9 +168,9 @@ def _print_plan(rows, excluded_count: int, args, output: pathlib.Path, resumed: 
     print(f"  shard        : {args.shard_index}/{args.shard_count}")
     print(f"  output       : {output.relative_to(ROOT)}")
     print(f"  teacher      : {args.model} @ {args.base_url}")
-    print(f"  pinned       : revision={_teacher_revision(args.model) or 'unknown'} "
+    print(f"  pinned       : revision={revision or 'unknown'} "
           f"image={args.image_digest or 'UNPINNED'}")
-    print(f"  template sha : {_template_sha256() or 'unknown'}")
+    print(f"  template sha : {template_sha256 or 'unknown'}")
     print(f"  spec         : temp={args.temperature} max_tokens={args.max_tokens} "
           f"thinking={args.thinking} effort={args.effort} seed={args.seed}")
     print(f"  concurrency  : {args.concurrency}")
@@ -258,6 +280,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--run-id", default=None)
     parser.add_argument("--exclusion-manifest", default=str(DEFAULT_EXCLUSION_MANIFEST))
     parser.add_argument("--image-digest", default=None)
+    parser.add_argument(
+        "--teacher-revision",
+        default=None,
+        help="commit SHA of the teacher weights; falls back to the local HF cache",
+    )
     parser.add_argument("--effort", default="low", choices=["low", "medium", "xhigh"])
     parser.add_argument("--thinking", action="store_true", help="enable thinking (S4); off by default")
     parser.add_argument("--max-tokens", type=int, default=1024)
@@ -307,13 +334,16 @@ def main(argv: list[str] | None = None) -> int:
     already = done_ids(output)
     rows = [row for row in rows if str(row["id"]) not in already]
 
+    revision = args.teacher_revision or _teacher_revision(args.model)
+    revision_source = "argument" if args.teacher_revision else ("hf-cache" if revision else None)
     teacher = {
         "model": args.model,
-        "revision": _teacher_revision(args.model),
+        "revision": revision,
+        "revision_source": revision_source,
         "image_digest": args.image_digest,
     }
     template_sha256 = _template_sha256()
-    _print_plan(rows, len(excluded), args, output, len(already))
+    _print_plan(rows, len(excluded), args, output, len(already), revision, template_sha256)
 
     if args.dry_run:
         print("\n  (--dry-run: nothing was called, nothing was written)")
@@ -321,6 +351,13 @@ def main(argv: list[str] | None = None) -> int:
 
     if not args.image_digest:
         print("\n❌ --image-digest is required for a real run (§6.4 manifest)", file=sys.stderr)
+        return 1
+    if not template_sha256:
+        print(
+            "\n❌ no chat-template hash: regenerate benchmarks/compat/tokenizer_contract.json "
+            "or run check_tokenizer_compat.py on this host (§6.4 manifest)",
+            file=sys.stderr,
+        )
         return 1
     if not rows:
         print("\n✅ nothing left to do for this shard")

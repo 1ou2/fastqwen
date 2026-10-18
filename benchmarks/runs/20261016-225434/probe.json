@@ -1,0 +1,955 @@
+{
+  "probe": "unite-1",
+  "run_id": "20261016-225434",
+  "started_at": "2026-10-16T22:54:34.830323+02:00",
+  "finished_at": "2026-10-16T23:01:34.748553+02:00",
+  "base_url": "http://127.0.0.1:8000",
+  "model": "Qwen/Qwen3.8-27B",
+  "sampling": {
+    "temperature": 0.0,
+    "top_p": 1.0,
+    "seed": 0,
+    "note": "température 0 : reproductibilité (§6.5.4 du plan)"
+  },
+  "fingerprint": {
+    "base_url": "http://127.0.0.1:8000",
+    "model_ids": [
+      "Qwen/Qwen3.8-27B"
+    ],
+    "v1_models_sha256": "d69b59dc8fce921b207467a8753abf1b57780e465a024588740fce0a22699065"
+  },
+  "configs": [
+    {
+      "name": "thinking_off",
+      "part": "a",
+      "description": "thinking désactivé",
+      "runs": 1,
+      "spec": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "top_k": null,
+        "max_tokens": 384,
+        "seed": 0,
+        "thinking": false,
+        "reasoning_effort": null,
+        "effort_in_template": false,
+        "presence_penalty": null,
+        "tools": []
+      },
+      "prompt": "Quelle est la capitale de l'Australie ? Réponds en une seule phrase."
+    },
+    {
+      "name": "thinking_on",
+      "part": "a",
+      "description": "thinking activé, effort par défaut",
+      "runs": 1,
+      "spec": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "top_k": null,
+        "max_tokens": 384,
+        "seed": 0,
+        "thinking": true,
+        "reasoning_effort": null,
+        "effort_in_template": false,
+        "presence_penalty": null,
+        "tools": []
+      },
+      "prompt": "Quelle est la capitale de l'Australie ? Réponds en une seule phrase."
+    },
+    {
+      "name": "effort_low",
+      "part": "a",
+      "description": "effort=low (paramètre de niveau supérieur)",
+      "runs": 1,
+      "spec": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "top_k": null,
+        "max_tokens": 384,
+        "seed": 0,
+        "thinking": true,
+        "reasoning_effort": "low",
+        "effort_in_template": false,
+        "presence_penalty": null,
+        "tools": []
+      },
+      "prompt": "Quelle est la capitale de l'Australie ? Réponds en une seule phrase."
+    },
+    {
+      "name": "effort_xhigh",
+      "part": "a",
+      "description": "effort=xhigh (paramètre de niveau supérieur)",
+      "runs": 1,
+      "spec": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "top_k": null,
+        "max_tokens": 384,
+        "seed": 0,
+        "thinking": true,
+        "reasoning_effort": "xhigh",
+        "effort_in_template": false,
+        "presence_penalty": null,
+        "tools": []
+      },
+      "prompt": "Quelle est la capitale de l'Australie ? Réponds en une seule phrase."
+    },
+    {
+      "name": "effort_xhigh_tpl",
+      "part": "a",
+      "description": "effort=xhigh (dans chat_template_kwargs)",
+      "runs": 1,
+      "spec": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "top_k": null,
+        "max_tokens": 384,
+        "seed": 0,
+        "thinking": true,
+        "reasoning_effort": "xhigh",
+        "effort_in_template": true,
+        "presence_penalty": null,
+        "tools": []
+      },
+      "prompt": "Quelle est la capitale de l'Australie ? Réponds en une seule phrase."
+    },
+    {
+      "name": "debit_ref",
+      "part": "b",
+      "description": "débit de référence (3 runs identiques)",
+      "runs": 3,
+      "spec": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "top_k": null,
+        "max_tokens": 160,
+        "seed": 0,
+        "thinking": true,
+        "reasoning_effort": "low",
+        "effort_in_template": false,
+        "presence_penalty": null,
+        "tools": []
+      },
+      "prompt": "Un train part à 9h15 et roule pendant 2h40. À quelle heure arrive-t-il ? Termine ta réponse par « Réponse : HH:MM »."
+    },
+    {
+      "name": "tool_call",
+      "part": "c",
+      "description": "appel d'outil (valide --tool-call-parser / --enable-auto-tool-choice)",
+      "runs": 1,
+      "spec": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "top_k": null,
+        "max_tokens": 160,
+        "seed": 0,
+        "thinking": false,
+        "reasoning_effort": null,
+        "effort_in_template": false,
+        "presence_penalty": null,
+        "tools": [
+          {
+            "type": "function",
+            "function": {
+              "name": "get_weather",
+              "description": "Donne la météo actuelle pour une ville.",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "location": {
+                    "type": "string",
+                    "description": "Ville, ex. Lyon"
+                  },
+                  "unit": {
+                    "type": "string",
+                    "enum": [
+                      "celsius",
+                      "fahrenheit"
+                    ]
+                  }
+                },
+                "required": [
+                  "location"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "prompt": "Quel temps fait-il à Lyon ? Utilise l'outil get_weather."
+    },
+    {
+      "name": "effort_low_hard",
+      "part": "d",
+      "description": "effort=low sur prompt difficile",
+      "runs": 1,
+      "spec": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "top_k": null,
+        "max_tokens": 512,
+        "seed": 0,
+        "thinking": true,
+        "reasoning_effort": "low",
+        "effort_in_template": false,
+        "presence_penalty": null,
+        "tools": []
+      },
+      "prompt": "Combien d'entiers entre 1 et 1000 (inclus) ne contiennent aucun chiffre 7 ? Vérifie ton raisonnement, puis termine par « Réponse : N »."
+    },
+    {
+      "name": "effort_xhigh_hard",
+      "part": "d",
+      "description": "effort=xhigh sur prompt difficile",
+      "runs": 1,
+      "spec": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "top_k": null,
+        "max_tokens": 512,
+        "seed": 0,
+        "thinking": true,
+        "reasoning_effort": "xhigh",
+        "effort_in_template": false,
+        "presence_penalty": null,
+        "tools": []
+      },
+      "prompt": "Combien d'entiers entre 1 et 1000 (inclus) ne contiennent aucun chiffre 7 ? Vérifie ton raisonnement, puis termine par « Réponse : N »."
+    }
+  ],
+  "samples": [
+    {
+      "config": "thinking_off",
+      "model": "Qwen/Qwen3.8-27B",
+      "prompt": "Quelle est la capitale de l'Australie ? Réponds en une seule phrase.",
+      "request_body": {
+        "model": "Qwen/Qwen3.8-27B",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Quelle est la capitale de l'Australie ? Réponds en une seule phrase."
+          }
+        ],
+        "max_tokens": 384,
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "chat_template_kwargs": {
+          "enable_thinking": false,
+          "preserve_thinking": true
+        },
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "seed": 0
+      },
+      "started_at": "2026-10-16T20:54:34.871009+00:00",
+      "http_status": 200,
+      "metrics": {
+        "ttft_s": 0.282505,
+        "e2e_s": 2.699822,
+        "decode_s": 2.175692,
+        "decode_tok_s": 4.596,
+        "itl_p50_s": 0.241596,
+        "itl_p95_s": 0.243843,
+        "n_total_tok": 11,
+        "n_prompt_tok": 30,
+        "n_reasoning_events": 0,
+        "n_answer_events": 10,
+        "n_tool_events": 0,
+        "reasoning_share": 0.0,
+        "usage_authoritative": true,
+        "finish_reason": "stop",
+        "warnings": []
+      },
+      "reasoning_text": "",
+      "answer_text": "La capitale de l'Australie est Canberra.",
+      "tool_calls": []
+    },
+    {
+      "config": "thinking_on",
+      "model": "Qwen/Qwen3.8-27B",
+      "prompt": "Quelle est la capitale de l'Australie ? Réponds en une seule phrase.",
+      "request_body": {
+        "model": "Qwen/Qwen3.8-27B",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Quelle est la capitale de l'Australie ? Réponds en une seule phrase."
+          }
+        ],
+        "max_tokens": 384,
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "chat_template_kwargs": {
+          "enable_thinking": true,
+          "preserve_thinking": true
+        },
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "seed": 0
+      },
+      "started_at": "2026-10-16T20:54:37.571135+00:00",
+      "http_status": 200,
+      "metrics": {
+        "ttft_s": 0.540474,
+        "e2e_s": 12.756214,
+        "decode_s": 11.976771,
+        "decode_tok_s": 4.258,
+        "itl_p50_s": 0.239308,
+        "itl_p95_s": 0.243574,
+        "n_total_tok": 52,
+        "n_prompt_tok": 70,
+        "n_reasoning_events": 38,
+        "n_answer_events": 10,
+        "n_tool_events": 0,
+        "reasoning_share": 0.7917,
+        "usage_authoritative": true,
+        "finish_reason": "stop",
+        "warnings": []
+      },
+      "reasoning_text": "The user is asking in French: \"What is the capital of Australia? Answer in one sentence.\" I need to respond in French, in one sentence. The capital of Australia is Canberra.",
+      "answer_text": "La capitale de l'Australie est Canberra.",
+      "tool_calls": []
+    },
+    {
+      "config": "effort_low",
+      "model": "Qwen/Qwen3.8-27B",
+      "prompt": "Quelle est la capitale de l'Australie ? Réponds en une seule phrase.",
+      "request_body": {
+        "model": "Qwen/Qwen3.8-27B",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Quelle est la capitale de l'Australie ? Réponds en une seule phrase."
+          }
+        ],
+        "max_tokens": 384,
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "chat_template_kwargs": {
+          "enable_thinking": true,
+          "preserve_thinking": true
+        },
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "seed": 0,
+        "reasoning_effort": "low"
+      },
+      "started_at": "2026-10-16T20:54:50.327566+00:00",
+      "http_status": 200,
+      "metrics": {
+        "ttft_s": 0.524713,
+        "e2e_s": 13.274453,
+        "decode_s": 12.507412,
+        "decode_tok_s": 4.237,
+        "itl_p50_s": 0.240609,
+        "itl_p95_s": 0.242767,
+        "n_total_tok": 54,
+        "n_prompt_tok": 58,
+        "n_reasoning_events": 40,
+        "n_answer_events": 10,
+        "n_tool_events": 0,
+        "reasoning_share": 0.8,
+        "usage_authoritative": true,
+        "finish_reason": "stop",
+        "warnings": []
+      },
+      "reasoning_text": "The user is asking in French: \"What is the capital of Australia? Answer in one sentence.\"\n\nThe capital of Australia is Canberra. I need to respond in French, in a single sentence.",
+      "answer_text": "La capitale de l'Australie est Canberra.",
+      "tool_calls": []
+    },
+    {
+      "config": "effort_xhigh",
+      "model": "Qwen/Qwen3.8-27B",
+      "prompt": "Quelle est la capitale de l'Australie ? Réponds en une seule phrase.",
+      "request_body": {
+        "model": "Qwen/Qwen3.8-27B",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Quelle est la capitale de l'Australie ? Réponds en une seule phrase."
+          }
+        ],
+        "max_tokens": 384,
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "chat_template_kwargs": {
+          "enable_thinking": true,
+          "preserve_thinking": true
+        },
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "seed": 0,
+        "reasoning_effort": "xhigh"
+      },
+      "started_at": "2026-10-16T20:55:03.602433+00:00",
+      "http_status": 200,
+      "metrics": {
+        "ttft_s": 0.542012,
+        "e2e_s": 12.775574,
+        "decode_s": 11.994834,
+        "decode_tok_s": 4.252,
+        "itl_p50_s": 0.239869,
+        "itl_p95_s": 0.244932,
+        "n_total_tok": 52,
+        "n_prompt_tok": 70,
+        "n_reasoning_events": 38,
+        "n_answer_events": 10,
+        "n_tool_events": 0,
+        "reasoning_share": 0.7917,
+        "usage_authoritative": true,
+        "finish_reason": "stop",
+        "warnings": []
+      },
+      "reasoning_text": "The user is asking in French: \"What is the capital of Australia? Answer in one sentence.\" I need to respond in French, in one sentence. The capital of Australia is Canberra.",
+      "answer_text": "La capitale de l'Australie est Canberra.",
+      "tool_calls": []
+    },
+    {
+      "config": "effort_xhigh_tpl",
+      "model": "Qwen/Qwen3.8-27B",
+      "prompt": "Quelle est la capitale de l'Australie ? Réponds en une seule phrase.",
+      "request_body": {
+        "model": "Qwen/Qwen3.8-27B",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Quelle est la capitale de l'Australie ? Réponds en une seule phrase."
+          }
+        ],
+        "max_tokens": 384,
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "chat_template_kwargs": {
+          "enable_thinking": true,
+          "preserve_thinking": true,
+          "reasoning_effort": "xhigh"
+        },
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "seed": 0
+      },
+      "started_at": "2026-10-16T20:55:16.378487+00:00",
+      "http_status": 200,
+      "metrics": {
+        "ttft_s": 0.548367,
+        "e2e_s": 12.56641,
+        "decode_s": 11.792342,
+        "decode_tok_s": 4.325,
+        "itl_p50_s": 0.234064,
+        "itl_p95_s": 0.247438,
+        "n_total_tok": 52,
+        "n_prompt_tok": 70,
+        "n_reasoning_events": 38,
+        "n_answer_events": 10,
+        "n_tool_events": 0,
+        "reasoning_share": 0.7917,
+        "usage_authoritative": true,
+        "finish_reason": "stop",
+        "warnings": []
+      },
+      "reasoning_text": "The user is asking in French: \"What is the capital of Australia? Answer in one sentence.\" I need to respond in French, in one sentence. The capital of Australia is Canberra.",
+      "answer_text": "La capitale de l'Australie est Canberra.",
+      "tool_calls": []
+    },
+    {
+      "config": "debit_ref",
+      "model": "Qwen/Qwen3.8-27B",
+      "prompt": "Un train part à 9h15 et roule pendant 2h40. À quelle heure arrive-t-il ? Termine ta réponse par « Réponse : HH:MM ».",
+      "request_body": {
+        "model": "Qwen/Qwen3.8-27B",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Un train part à 9h15 et roule pendant 2h40. À quelle heure arrive-t-il ? Termine ta réponse par « Réponse : HH:MM »."
+          }
+        ],
+        "max_tokens": 160,
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "chat_template_kwargs": {
+          "enable_thinking": true,
+          "preserve_thinking": true
+        },
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "seed": 0,
+        "reasoning_effort": "low"
+      },
+      "started_at": "2026-10-16T20:55:28.945392+00:00",
+      "http_status": 200,
+      "metrics": {
+        "ttft_s": 0.519388,
+        "e2e_s": 36.450577,
+        "decode_s": 35.70184,
+        "decode_tok_s": 4.285,
+        "itl_p50_s": 0.233596,
+        "itl_p95_s": 0.248695,
+        "n_total_tok": 154,
+        "n_prompt_tok": 77,
+        "n_reasoning_events": 91,
+        "n_answer_events": 57,
+        "n_tool_events": 0,
+        "reasoning_share": 0.6149,
+        "usage_authoritative": true,
+        "finish_reason": "stop",
+        "warnings": []
+      },
+      "reasoning_text": "I need to calculate the arrival time of a train that departs at 9:15 and travels for 2 hours and 40 minutes.\n\nStarting time: 9:15\nDuration: 2h 40min\n\nAdding the hours: 9 + 2 = 11\nAdding the minutes: 15 + 40 = 55\n\nSo the arrival time is 11:55.",
+      "answer_text": "Le train part à 9h15 et roule pendant 2h40.\n\n- Heures : 9 + 2 = 11\n- Minutes : 15 + 40 = 55\n\nRéponse : 11:55",
+      "tool_calls": []
+    },
+    {
+      "config": "debit_ref",
+      "model": "Qwen/Qwen3.8-27B",
+      "prompt": "Un train part à 9h15 et roule pendant 2h40. À quelle heure arrive-t-il ? Termine ta réponse par « Réponse : HH:MM ».",
+      "request_body": {
+        "model": "Qwen/Qwen3.8-27B",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Un train part à 9h15 et roule pendant 2h40. À quelle heure arrive-t-il ? Termine ta réponse par « Réponse : HH:MM »."
+          }
+        ],
+        "max_tokens": 160,
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "chat_template_kwargs": {
+          "enable_thinking": true,
+          "preserve_thinking": true
+        },
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "seed": 0,
+        "reasoning_effort": "low"
+      },
+      "started_at": "2026-10-16T20:56:05.396729+00:00",
+      "http_status": 200,
+      "metrics": {
+        "ttft_s": 0.497169,
+        "e2e_s": 36.743695,
+        "decode_s": 36.011077,
+        "decode_tok_s": 4.249,
+        "itl_p50_s": 0.238426,
+        "itl_p95_s": 0.246767,
+        "n_total_tok": 154,
+        "n_prompt_tok": 77,
+        "n_reasoning_events": 91,
+        "n_answer_events": 57,
+        "n_tool_events": 0,
+        "reasoning_share": 0.6149,
+        "usage_authoritative": true,
+        "finish_reason": "stop",
+        "warnings": []
+      },
+      "reasoning_text": "I need to calculate the arrival time of a train that departs at 9:15 and travels for 2 hours and 40 minutes.\n\nStarting time: 9:15\nDuration: 2h 40min\n\nAdding the hours: 9 + 2 = 11\nAdding the minutes: 15 + 40 = 55\n\nSo the arrival time is 11:55.",
+      "answer_text": "Le train part à 9h15 et roule pendant 2h40.\n\n- Heures : 9 + 2 = 11\n- Minutes : 15 + 40 = 55\n\nRéponse : 11:55",
+      "tool_calls": []
+    },
+    {
+      "config": "debit_ref",
+      "model": "Qwen/Qwen3.8-27B",
+      "prompt": "Un train part à 9h15 et roule pendant 2h40. À quelle heure arrive-t-il ? Termine ta réponse par « Réponse : HH:MM ».",
+      "request_body": {
+        "model": "Qwen/Qwen3.8-27B",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Un train part à 9h15 et roule pendant 2h40. À quelle heure arrive-t-il ? Termine ta réponse par « Réponse : HH:MM »."
+          }
+        ],
+        "max_tokens": 160,
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "chat_template_kwargs": {
+          "enable_thinking": true,
+          "preserve_thinking": true
+        },
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "seed": 0,
+        "reasoning_effort": "low"
+      },
+      "started_at": "2026-10-16T20:56:42.141119+00:00",
+      "http_status": 200,
+      "metrics": {
+        "ttft_s": 0.533432,
+        "e2e_s": 36.978117,
+        "decode_s": 36.198871,
+        "decode_tok_s": 4.227,
+        "itl_p50_s": 0.239028,
+        "itl_p95_s": 0.24914,
+        "n_total_tok": 154,
+        "n_prompt_tok": 77,
+        "n_reasoning_events": 91,
+        "n_answer_events": 57,
+        "n_tool_events": 0,
+        "reasoning_share": 0.6149,
+        "usage_authoritative": true,
+        "finish_reason": "stop",
+        "warnings": []
+      },
+      "reasoning_text": "I need to calculate the arrival time of a train that departs at 9:15 and travels for 2 hours and 40 minutes.\n\nStarting time: 9:15\nDuration: 2h 40min\n\nAdding the hours: 9 + 2 = 11\nAdding the minutes: 15 + 40 = 55\n\nSo the arrival time is 11:55.",
+      "answer_text": "Le train part à 9h15 et roule pendant 2h40.\n\n- Heures : 9 + 2 = 11\n- Minutes : 15 + 40 = 55\n\nRéponse : 11:55",
+      "tool_calls": []
+    },
+    {
+      "config": "tool_call",
+      "model": "Qwen/Qwen3.8-27B",
+      "prompt": "Quel temps fait-il à Lyon ? Utilise l'outil get_weather.",
+      "request_body": {
+        "model": "Qwen/Qwen3.8-27B",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Quel temps fait-il à Lyon ? Utilise l'outil get_weather."
+          }
+        ],
+        "max_tokens": 160,
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "chat_template_kwargs": {
+          "enable_thinking": false,
+          "preserve_thinking": true
+        },
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "seed": 0,
+        "tools": [
+          {
+            "type": "function",
+            "function": {
+              "name": "get_weather",
+              "description": "Donne la météo actuelle pour une ville.",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "location": {
+                    "type": "string",
+                    "description": "Ville, ex. Lyon"
+                  },
+                  "unit": {
+                    "type": "string",
+                    "enum": [
+                      "celsius",
+                      "fahrenheit"
+                    ]
+                  }
+                },
+                "required": [
+                  "location"
+                ]
+              }
+            }
+          }
+        ],
+        "tool_choice": "auto"
+      },
+      "started_at": "2026-10-16T20:57:19.120168+00:00",
+      "http_status": 200,
+      "metrics": {
+        "ttft_s": 9.540644,
+        "e2e_s": 9.768852,
+        "decode_s": 0.0,
+        "decode_tok_s": 0.0,
+        "itl_p50_s": 0.0,
+        "itl_p95_s": 0.0,
+        "n_total_tok": 40,
+        "n_prompt_tok": 318,
+        "n_reasoning_events": 0,
+        "n_answer_events": 0,
+        "n_tool_events": 2,
+        "reasoning_share": 0.0,
+        "usage_authoritative": true,
+        "finish_reason": "tool_calls",
+        "warnings": [
+          "moins de 2 tokens : débit de décodage non mesurable",
+          "aucun token de réponse (raisonnement seul ou sortie tronquée)"
+        ]
+      },
+      "reasoning_text": "",
+      "answer_text": "",
+      "tool_calls": [
+        {
+          "id": "call_060885c0362e46d5890d23a7",
+          "name": "get_weather",
+          "arguments": "{\"location\":\"Lyon\",\"unit\":\"celsius\"}"
+        }
+      ]
+    },
+    {
+      "config": "effort_low_hard",
+      "model": "Qwen/Qwen3.8-27B",
+      "prompt": "Combien d'entiers entre 1 et 1000 (inclus) ne contiennent aucun chiffre 7 ? Vérifie ton raisonnement, puis termine par « Réponse : N ».",
+      "request_body": {
+        "model": "Qwen/Qwen3.8-27B",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Combien d'entiers entre 1 et 1000 (inclus) ne contiennent aucun chiffre 7 ? Vérifie ton raisonnement, puis termine par « Réponse : N »."
+          }
+        ],
+        "max_tokens": 512,
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "chat_template_kwargs": {
+          "enable_thinking": true,
+          "preserve_thinking": true
+        },
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "seed": 0,
+        "reasoning_effort": "low"
+      },
+      "started_at": "2026-10-16T20:57:28.889289+00:00",
+      "http_status": 200,
+      "metrics": {
+        "ttft_s": 0.505744,
+        "e2e_s": 122.006201,
+        "decode_s": 121.500314,
+        "decode_tok_s": 4.206,
+        "itl_p50_s": 0.236877,
+        "itl_p95_s": 0.25681,
+        "n_total_tok": 512,
+        "n_prompt_tok": 81,
+        "n_reasoning_events": 504,
+        "n_answer_events": 0,
+        "n_tool_events": 0,
+        "reasoning_share": 1.0,
+        "usage_authoritative": true,
+        "finish_reason": "length",
+        "warnings": [
+          "aucun token de réponse (raisonnement seul ou sortie tronquée)",
+          "sortie tronquée (finish_reason=length)"
+        ]
+      },
+      "reasoning_text": "I need to find how many integers between 1 and 1000 (inclusive) contain no digit 7.\n\nLet me think about this systematically.\n\nI'll count the numbers from 1 to 999 that don't contain the digit 7, then check 1000 separately.\n\nFor numbers from 1 to 999, I can think of them as 3-digit numbers with leading zeros: 001 to 999.\n\nActually, let me think of it as numbers from 000 to 999 (which is 0 to 999), then subtract 1 for the number 0 (since we want 1 to 999), and then add 1 for 1000 if it doesn't contain a 7.\n\nWait, let me be more careful.\n\nNumbers from 1 to 999:\n- I can represent each as a 3-digit string with leading zeros: 001, 002, ..., 999\n- For each position (hundreds, tens, units), the digit can be anything except 7, so there are 9 choices per position (0,1,2,3,4,5,6,8,9).\n- Total 3-digit strings (including 000) without a 7: 9 × 9 × 9 = 729\n- This includes 000 (which represents 0), so numbers from 1 to 999 without a 7: 729 - 1 = 728\n\nNow for 1000: the digits are 1, 0, 0, 0 - no 7, so it counts.\n\nTotal: 728 + 1 = 729\n\nLet me verify this with a different approach.\n\nNumbers from 1 to 999 without digit 7:\n- 1-digit numbers (1-9): digits 1,2,3,4,5,6,8,9 → 8 numbers\n- 2-digit numbers (10-99): \n  - Tens digit: 1-9 except 7 → 8 choices\n  - Units digit: 0-9 except 7 → 9 choices\n  - Total: 8 × 9 = 72",
+      "answer_text": "",
+      "tool_calls": []
+    },
+    {
+      "config": "effort_xhigh_hard",
+      "model": "Qwen/Qwen3.8-27B",
+      "prompt": "Combien d'entiers entre 1 et 1000 (inclus) ne contiennent aucun chiffre 7 ? Vérifie ton raisonnement, puis termine par « Réponse : N ».",
+      "request_body": {
+        "model": "Qwen/Qwen3.8-27B",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Combien d'entiers entre 1 et 1000 (inclus) ne contiennent aucun chiffre 7 ? Vérifie ton raisonnement, puis termine par « Réponse : N »."
+          }
+        ],
+        "max_tokens": 512,
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "chat_template_kwargs": {
+          "enable_thinking": true,
+          "preserve_thinking": true
+        },
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "seed": 0,
+        "reasoning_effort": "xhigh"
+      },
+      "started_at": "2026-10-16T20:59:30.896066+00:00",
+      "http_status": 200,
+      "metrics": {
+        "ttft_s": 0.330773,
+        "e2e_s": 123.851544,
+        "decode_s": 123.520569,
+        "decode_tok_s": 4.137,
+        "itl_p50_s": 0.240893,
+        "itl_p95_s": 0.255496,
+        "n_total_tok": 512,
+        "n_prompt_tok": 93,
+        "n_reasoning_events": 356,
+        "n_answer_events": 153,
+        "n_tool_events": 0,
+        "reasoning_share": 0.6994,
+        "usage_authoritative": true,
+        "finish_reason": "length",
+        "warnings": [
+          "sortie tronquée (finish_reason=length)"
+        ]
+      },
+      "reasoning_text": "Nous devons répondre en français. Problème: compter les entiers entre 1 et 1000 inclus qui ne contiennent aucun chiffre 7. Il faut vérifier raisonnement et terminer par « Réponse : N ».\n\nAnalyse: nombres de 1 à 1000. On peut compter par représentation à 3 chiffres avec zéros à gauche de 000 à 999, puis ajouter 1000. Pour 000 à 999, chaque chiffre peut être 0-9 sauf 7: 9 choix par position, donc 9^3=729 nombres de 000 à 999 sans 7, y compris 000. On veut 1 à 999, donc exclure 000: 728. 1000 ne contient pas 7, donc +1 = 729. Autre méthode: 1-999: 1-9: 8 (1-6,8,9); 10-99: dizaines 8 (1-6,8,9) unités 9 =>72; 100-999: centaines 8 dizaines 9 unités 9 =>648; total 728; +1000=729. Vérifier: 9^3=729 inclut 000, donc 1-999 sans 7 =728, plus 1000 =729. Réponse: 729.\n\nIl faut final avec phrase et « Réponse : 729 ».",
+      "answer_text": "On peut compter les nombres de 1 à 999 en les écrivant avec 3 chiffres, en ajoutant des zéros à gauche si nécessaire.\n\nDe 000 à 999, chaque chiffre peut être choisi parmi les 9 chiffres suivants :  \n0, 1, 2, 3, 4, 5, 6, 8, 9.\n\nIl y a donc :\n\n\\[\n9^3 = 729\n\\]\n\nnombres de 000 à 999 ne contenant aucun 7.\n\nMais 000 correspond à 0, qui n’est pas compris entre 1 et 1000. Il faut donc le",
+      "tool_calls": []
+    }
+  ],
+  "errors": [],
+  "summary": {
+    "thinking_off": {
+      "runs": 1,
+      "ttft_s_median": 0.2825,
+      "decode_tok_s_median": 4.596,
+      "e2e_s_median": 2.6998,
+      "n_total_tok_median": 11.0,
+      "n_reasoning_events_median": 0.0,
+      "n_answer_events_median": 10.0,
+      "finish_reasons": [
+        "stop"
+      ]
+    },
+    "thinking_on": {
+      "runs": 1,
+      "ttft_s_median": 0.5405,
+      "decode_tok_s_median": 4.258,
+      "e2e_s_median": 12.7562,
+      "n_total_tok_median": 52.0,
+      "n_reasoning_events_median": 38.0,
+      "n_answer_events_median": 10.0,
+      "finish_reasons": [
+        "stop"
+      ]
+    },
+    "effort_low": {
+      "runs": 1,
+      "ttft_s_median": 0.5247,
+      "decode_tok_s_median": 4.237,
+      "e2e_s_median": 13.2745,
+      "n_total_tok_median": 54.0,
+      "n_reasoning_events_median": 40.0,
+      "n_answer_events_median": 10.0,
+      "finish_reasons": [
+        "stop"
+      ]
+    },
+    "effort_xhigh": {
+      "runs": 1,
+      "ttft_s_median": 0.542,
+      "decode_tok_s_median": 4.252,
+      "e2e_s_median": 12.7756,
+      "n_total_tok_median": 52.0,
+      "n_reasoning_events_median": 38.0,
+      "n_answer_events_median": 10.0,
+      "finish_reasons": [
+        "stop"
+      ]
+    },
+    "effort_xhigh_tpl": {
+      "runs": 1,
+      "ttft_s_median": 0.5484,
+      "decode_tok_s_median": 4.325,
+      "e2e_s_median": 12.5664,
+      "n_total_tok_median": 52.0,
+      "n_reasoning_events_median": 38.0,
+      "n_answer_events_median": 10.0,
+      "finish_reasons": [
+        "stop"
+      ]
+    },
+    "debit_ref": {
+      "runs": 3,
+      "ttft_s_median": 0.5194,
+      "decode_tok_s_median": 4.249,
+      "e2e_s_median": 36.7437,
+      "n_total_tok_median": 154.0,
+      "n_reasoning_events_median": 91.0,
+      "n_answer_events_median": 57.0,
+      "finish_reasons": [
+        "stop"
+      ]
+    },
+    "tool_call": {
+      "runs": 1,
+      "ttft_s_median": 9.5406,
+      "decode_tok_s_median": 0.0,
+      "e2e_s_median": 9.7689,
+      "n_total_tok_median": 40.0,
+      "n_reasoning_events_median": 0.0,
+      "n_answer_events_median": 0.0,
+      "finish_reasons": [
+        "tool_calls"
+      ]
+    },
+    "effort_low_hard": {
+      "runs": 1,
+      "ttft_s_median": 0.5057,
+      "decode_tok_s_median": 4.206,
+      "e2e_s_median": 122.0062,
+      "n_total_tok_median": 512.0,
+      "n_reasoning_events_median": 504.0,
+      "n_answer_events_median": 0.0,
+      "finish_reasons": [
+        "length"
+      ]
+    },
+    "effort_xhigh_hard": {
+      "runs": 1,
+      "ttft_s_median": 0.3308,
+      "decode_tok_s_median": 4.137,
+      "e2e_s_median": 123.8515,
+      "n_total_tok_median": 512.0,
+      "n_reasoning_events_median": 356.0,
+      "n_answer_events_median": 153.0,
+      "finish_reasons": [
+        "length"
+      ]
+    }
+  },
+  "findings": {
+    "c2_split_raisonnement": {
+      "ok": true,
+      "detail": "raisonnement thinking=off : 0 événements, thinking=on : 38"
+    },
+    "c3_effort_top_level": {
+      "ok": null,
+      "verdict": "ecart_non_concluant",
+      "detail": "reasoning_effort (niveau supérieur) : xhigh=38 vs low=40 événements de raisonnement (ratio 0.95) — écart non concluant : le paramètre est accepté mais sans effet mesurable ici (ratio sous le seuil 1.20 ; prompt trop facile, ou paramètre réellement ignoré)"
+    },
+    "c3b_effort_via_template": {
+      "ok": null,
+      "verdict": "ecart_non_concluant",
+      "detail": "reasoning_effort (chat_template_kwargs) : xhigh=38 vs low=40 événements de raisonnement (ratio 0.95) — écart non concluant : le paramètre est accepté mais sans effet mesurable ici (ratio sous le seuil 1.20 ; prompt trop facile, ou paramètre réellement ignoré)"
+    },
+    "c3c_effort_prompt_difficile": {
+      "ok": null,
+      "verdict": "effet_contraire",
+      "detail": "reasoning_effort (prompt difficile) : xhigh=356 vs low=504 événements de raisonnement (ratio 0.71) — effet contraire inattendu (xhigh raisonne moins que low, ratio < 0.90 < seuil 1.20) — à investiguer"
+    },
+    "c4_usage_coherent": {
+      "ok": true,
+      "detail": "11/11 échantillons avec usage autoritaire ; prompt≈77 tokens, complétion≈54"
+    },
+    "c5_dispersion_debit": {
+      "ok": true,
+      "detail": "min 4.23 / max 4.29 tok/s (ratio 1.014, seuil 1.10 sur 3 runs)"
+    },
+    "c6_plage_physique": {
+      "ok": true,
+      "detail": "4.25 tok/s (attendu 2.0-6.5 tok/s pour 54 Go BF16 à ~273 Go/s)"
+    },
+    "c_tool_calls": {
+      "ok": true,
+      "detail": "1 appel(s) d'outil assemblé(s), 1 nommé(s), 1 avec arguments JSON valides"
+    },
+    "c_tool_flux_bufferise": {
+      "ok": null,
+      "verdict": "bufferise",
+      "detail": "1/1 requête(s) outils avec TTFT ≥ 90 % de la durée totale : fragments tool_calls bufferisés par le serveur → mesurer ces cas en non-streamé"
+    }
+  }
+}

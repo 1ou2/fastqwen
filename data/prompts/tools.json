@@ -1,0 +1,181 @@
+{
+  "weather": [
+    {
+      "type": "function",
+      "function": {
+        "name": "get_weather",
+        "description": "Current weather for one city",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "city": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "city"
+          ]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "get_forecast",
+        "description": "Daily forecast for one city",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "city": {
+              "type": "string"
+            },
+            "days": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 7
+            }
+          },
+          "required": [
+            "city",
+            "days"
+          ]
+        }
+      }
+    }
+  ],
+  "search": [
+    {
+      "type": "function",
+      "function": {
+        "name": "search_docs",
+        "description": "Full-text search in the product documentation",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "query"
+          ]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "search_code",
+        "description": "Search symbols in the source repositories",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "query"
+          ]
+        }
+      }
+    }
+  ],
+  "tickets": [
+    {
+      "type": "function",
+      "function": {
+        "name": "create_ticket",
+        "description": "Open a ticket in the tracker",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "severity": {
+              "type": "string",
+              "enum": [
+                "low",
+                "medium",
+                "high"
+              ]
+            }
+          },
+          "required": [
+            "title",
+            "severity"
+          ]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "assign_ticket",
+        "description": "Assign a ticket to a teammate",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "ticket_id": {
+              "type": "string"
+            },
+            "assignee": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "ticket_id",
+            "assignee"
+          ]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "close_ticket",
+        "description": "Close a ticket",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "ticket_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "ticket_id"
+          ]
+        }
+      }
+    }
+  ],
+  "currency": [
+    {
+      "type": "function",
+      "function": {
+        "name": "convert_currency",
+        "description": "Convert an amount between two currencies",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "amount": {
+              "type": "number"
+            },
+            "from_currency": {
+              "type": "string"
+            },
+            "to_currency": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "amount",
+            "from_currency",
+            "to_currency"
+          ]
+        }
+      }
+    }
+  ]
+}

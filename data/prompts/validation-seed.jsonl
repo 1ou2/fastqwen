@@ -1,0 +1,60 @@
+{"id": "val-s1-01", "slice": "S1", "language": "fr", "prompt": "Explique en trois phrases pourquoi un modèle dense de 27B est limité par la bande passante mémoire et non par le calcul.", "tools_ref": null}
+{"id": "val-s1-02", "slice": "S1", "language": "fr", "prompt": "Propose un plan de trois étapes pour mesurer proprement la vitesse d'inférence d'un LLM sur une machine unique.", "tools_ref": null}
+{"id": "val-s1-03", "slice": "S1", "language": "fr", "prompt": "Compare un cache KV FP8 et un cache KV BF16 : gains attendus, risques, et dans quel cas le gain est nul.", "tools_ref": null}
+{"id": "val-s1-04", "slice": "S1", "language": "fr", "prompt": "Rédige un court message pour expliquer à un collègue non technique pourquoi on ne mesure pas la qualité avec un seul score.", "tools_ref": null}
+{"id": "val-s1-05", "slice": "S1", "language": "fr", "prompt": "Quelles questions poser avant d'acheter un GPU pour faire tourner un modèle de 27B en local ? Donne cinq critères.", "tools_ref": null}
+{"id": "val-s1-06", "slice": "S1", "language": "fr", "prompt": "Résume la différence entre quantification hors ligne et quantification à la volée, avec un exemple concret pour chacune.", "tools_ref": null}
+{"id": "val-s1-07", "slice": "S1", "language": "fr", "prompt": "Un modèle produit 40 tokens/s en décodage et 300 en prefill. Explique ce que ces deux chiffres mesurent et pourquoi ils diffèrent.", "tools_ref": null}
+{"id": "val-s1-08", "slice": "S1", "language": "fr", "prompt": "Donne trois raisons pour lesquelles deux benchmarks du même modèle peuvent donner des résultats différents.", "tools_ref": null}
+{"id": "val-s1-09", "slice": "S1", "language": "en", "prompt": "Explain continuous batching to a backend engineer who knows request queues but not GPUs, in under 150 words.", "tools_ref": null}
+{"id": "val-s1-10", "slice": "S1", "language": "en", "prompt": "List three ways a draft model can be worse than no draft model at all in speculative decoding.", "tools_ref": null}
+{"id": "val-s1-11", "slice": "S1", "language": "en", "prompt": "What does 'memory-bound' imply about the value of adding a second GPU for single-user decoding? Be concrete.", "tools_ref": null}
+{"id": "val-s1-12", "slice": "S1", "language": "en", "prompt": "Draft a five-line README section explaining why the number of reasoning tokens must be reported with the stopwatch.", "tools_ref": null}
+{"id": "val-s1-13", "slice": "S1", "language": "en", "prompt": "Give three failure modes of a calibration set built only from Wikipedia text.", "tools_ref": null}
+{"id": "val-s1-14", "slice": "S1", "language": "en", "prompt": "Explain what an acceptance rate of 0.72 means in speculative decoding, and what it does not mean.", "tools_ref": null}
+{"id": "val-s1-15", "slice": "S1", "language": "en", "prompt": "A colleague claims 4-bit quantization is 'free'. Give two measurements that would challenge that claim.", "tools_ref": null}
+{"id": "val-s1-16", "slice": "S1", "language": "en", "prompt": "Summarize the trade-off between CUDA graphs and enforce-eager mode for reproducible benchmarking.", "tools_ref": null}
+{"id": "val-s1-17", "slice": "S1", "language": "fr", "prompt": "Écris un paragraphe de 80 mots expliquant le TTFT à un product manager.", "tools_ref": null}
+{"id": "val-s1-18", "slice": "S1", "language": "fr", "prompt": "Quels artefacts faut-il enregistrer pour qu'une mesure soit reproductible dans six mois ? Donne une liste ordonnée.", "tools_ref": null}
+{"id": "val-s1-19", "slice": "S1", "language": "en", "prompt": "Describe how prefix caching helps a chat application with a long shared system prompt, and when it does nothing.", "tools_ref": null}
+{"id": "val-s1-20", "slice": "S1", "language": "en", "prompt": "Propose a screening test to decide whether a draft model is worth a full H100 training run.", "tools_ref": null}
+{"id": "val-s2-01", "slice": "S2", "language": "py", "prompt": "Write a function that parses a vLLM Prometheus text dump and returns a dict of metric name to float, ignoring labels. Include a doctest.", "tools_ref": null}
+{"id": "val-s2-02", "slice": "S2", "language": "py", "prompt": "Implement a resumable JSONL writer: appending a record must be atomic, and reopening the file must skip truncated trailing lines.", "tools_ref": null}
+{"id": "val-s2-03", "slice": "S2", "language": "py", "prompt": "Write a context manager that times a block and prints elapsed milliseconds on exit, even when the block raises.", "tools_ref": null}
+{"id": "val-s2-04", "slice": "S2", "language": "sql", "prompt": "Write a query that finds the slowest p95 latency per model from a table of (model, latency_ms, ts), for the last 7 days.", "tools_ref": null}
+{"id": "val-s2-05", "slice": "S2", "language": "bash", "prompt": "Write a shell script that runs a command three times, keeps the median wall time, and exits non-zero if any run fails.", "tools_ref": null}
+{"id": "val-s2-06", "slice": "S2", "language": "js", "prompt": "Write a small async function that fetches a URL with a timeout and retries twice on network errors, without external libraries.", "tools_ref": null}
+{"id": "val-s2-07", "slice": "S2", "language": "py", "prompt": "Fix this function so it does not mutate its argument:\n\ndef add_tag(tags, tag):\n    tags.append(tag)\n    return tags", "tools_ref": null}
+{"id": "val-s2-08", "slice": "S2", "language": "py", "prompt": "This decorator loses the docstring of the wrapped function. Fix it:\n\ndef logged(f):\n    def wrapper(*a, **k):\n        return f(*a, **k)\n    return wrapper", "tools_ref": null}
+{"id": "val-s2-09", "slice": "S2", "language": "sql", "prompt": "Explain why this query is slow and rewrite it:\nSELECT * FROM runs WHERE date(created_at) = '2026-10-16';", "tools_ref": null}
+{"id": "val-s2-10", "slice": "S2", "language": "py", "prompt": "Write pytest tests for a function `clamp(x, lo, hi)` covering normal, boundary and inverted-range cases.", "tools_ref": null}
+{"id": "val-s2-11", "slice": "S2", "language": "py", "prompt": "Refactor this nested conditional into early returns, preserving behaviour:\n\ndef grade(s):\n    if s >= 0:\n        if s >= 90:\n            return 'A'\n        else:\n            if s >= 80:\n                return 'B'\n            else:\n                return 'C'\n    else:\n        return 'invalid'", "tools_ref": null}
+{"id": "val-s2-12", "slice": "S2", "language": "py", "prompt": "Explain what this code does, line by line, then name one input that breaks it:\n\ndef med(xs):\n    xs = sorted(xs)\n    return xs[len(xs) // 2]", "tools_ref": null}
+{"id": "val-s2-13", "slice": "S2", "language": "py", "prompt": "Write a dataclass for a benchmark run manifest with fields for image digest, model revisions, effort and git commit, plus a `to_json` method that sorts keys.", "tools_ref": null}
+{"id": "val-s2-14", "slice": "S2", "language": "py", "prompt": "Implement `chunked(iterable, n)` yielding lists of at most n items, with tests for n=1, n>len and n=0 raising.", "tools_ref": null}
+{"id": "val-s2-15", "slice": "S2", "language": "py", "prompt": "Given a list of dicts, group them by a key and compute the mean of another key, ignoring missing values. Write it with collections.defaultdict.", "tools_ref": null}
+{"id": "val-s2-16", "slice": "S2", "language": "sql", "prompt": "Write a query that returns customers with no order in the last 30 days, using a LEFT JOIN and a NOT IN variant, and explain which is safer.", "tools_ref": null}
+{"id": "val-s2-17", "slice": "S2", "language": "bash", "prompt": "Write a command that finds all .jsonl files older than 7 days, counts their lines, and prints the total.", "tools_ref": null}
+{"id": "val-s2-18", "slice": "S2", "language": "py", "prompt": "Write a function that validates a JSON Schema subset (type, required, enum) and returns a list of human-readable errors.", "tools_ref": null}
+{"id": "val-s2-19", "slice": "S2", "language": "py", "prompt": "Explain the difference between `torch.no_grad()` and `torch.inference_mode()`, and when each one changes results.", "tools_ref": null}
+{"id": "val-s2-20", "slice": "S2", "language": "py", "prompt": "Write a retry loop with exponential backoff and jitter for an httpx client, capped at five attempts, and log each attempt.", "tools_ref": null}
+{"id": "val-s3-01", "slice": "S3", "language": "fr", "prompt": "Quelle est la météo à Lyon ?", "tools_ref": "weather"}
+{"id": "val-s3-02", "slice": "S3", "language": "fr", "prompt": "Donne-moi les prévisions pour Nantes sur trois jours.", "tools_ref": "weather"}
+{"id": "val-s3-03", "slice": "S3", "language": "en", "prompt": "What is the weather in Reykjavik right now, and should I bring an umbrella tomorrow?", "tools_ref": "weather"}
+{"id": "val-s3-04", "slice": "S3", "language": "fr", "prompt": "Cherche dans la documentation comment configurer `max_num_seqs`.", "tools_ref": "search"}
+{"id": "val-s3-05", "slice": "S3", "language": "en", "prompt": "Find where `acceptance_rate` is computed in the codebase.", "tools_ref": "search"}
+{"id": "val-s3-06", "slice": "S3", "language": "fr", "prompt": "Quel est le paramètre de configuration de `max_num_seqs` dans la doc ? Et où est-il utilisé dans le code ?", "tools_ref": "search"}
+{"id": "val-s3-07", "slice": "S3", "language": "fr", "prompt": "Crée un ticket basse sévérité « doc manquante pour le manifest » et assigne-le à Sam.", "tools_ref": "tickets"}
+{"id": "val-s3-08", "slice": "S3", "language": "en", "prompt": "Open a high-severity ticket for a data corruption bug, then assign it to the storage team.", "tools_ref": "tickets"}
+{"id": "val-s3-09", "slice": "S3", "language": "fr", "prompt": "Ferme le ticket T-1042 s'il est résolu.", "tools_ref": "tickets"}
+{"id": "val-s3-10", "slice": "S3", "language": "en", "prompt": "Convert 250 euros to yens and then to dollars, and tell me which conversion lost the most value.", "tools_ref": "currency"}
+{"id": "val-s3-11", "slice": "S3", "language": "fr", "prompt": "Convertis 1 200 dollars en euros.", "tools_ref": "currency"}
+{"id": "val-s3-12", "slice": "S3", "language": "en", "prompt": "Cancel my subscription and refund the last payment.", "tools_ref": "tickets"}
+{"id": "val-s3-13", "slice": "S3", "language": "fr", "prompt": "Réserve une table pour quatre personnes samedi soir.", "tools_ref": "tickets"}
+{"id": "val-s3-14", "slice": "S3", "language": "en", "prompt": "What is the weather in Paris and the forecast for the next two days?", "tools_ref": "weather"}
+{"id": "val-s3-15", "slice": "S3", "language": "fr", "prompt": "Cherche `retry_policy` dans le code, puis explique comment l'utiliser d'après la doc.", "tools_ref": "search"}
+{"id": "val-s3-16", "slice": "S3", "language": "en", "prompt": "Create a medium ticket titled 'p95 latency regression' and leave it unassigned for now.", "tools_ref": "tickets"}
+{"id": "val-s3-17", "slice": "S3", "language": "fr", "prompt": "Assigner le ticket T-2077 à l'équipe infra, puis le fermer.", "tools_ref": "tickets"}
+{"id": "val-s3-18", "slice": "S3", "language": "en", "prompt": "Which tool would you use to find a function by name in the repository, and why not the documentation search?", "tools_ref": "search"}
+{"id": "val-s3-19", "slice": "S3", "language": "fr", "prompt": "Quel temps fera-t-il demain à Marseille ? Je pars en vélo.", "tools_ref": "weather"}
+{"id": "val-s3-20", "slice": "S3", "language": "en", "prompt": "Convert 1000 dollars to euros, but first tell me whether you have a live exchange rate or a fixed one.", "tools_ref": "currency"}

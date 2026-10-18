@@ -1,0 +1,778 @@
+{
+  "probe": "unite-1",
+  "run_id": "20261016-224112",
+  "started_at": "2026-10-16T22:41:12.970167+02:00",
+  "finished_at": "2026-10-16T22:44:05.193268+02:00",
+  "base_url": "http://127.0.0.1:8000",
+  "model": "Qwen/Qwen3.8-27B",
+  "sampling": {
+    "temperature": 0.0,
+    "top_p": 1.0,
+    "seed": 0,
+    "note": "température 0 : reproductibilité (§6.5.4 du plan)"
+  },
+  "fingerprint": {
+    "base_url": "http://127.0.0.1:8000",
+    "model_ids": [
+      "Qwen/Qwen3.8-27B"
+    ],
+    "v1_models_sha256": "b2b0b25a73436d44b06cacf1118e8bc9bbdf9732fb225dc1f5850400fc30c74a"
+  },
+  "configs": [
+    {
+      "name": "thinking_off",
+      "part": "a",
+      "description": "thinking désactivé",
+      "runs": 1,
+      "spec": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "top_k": null,
+        "max_tokens": 384,
+        "seed": 0,
+        "thinking": false,
+        "reasoning_effort": null,
+        "effort_in_template": false,
+        "presence_penalty": null,
+        "tools": []
+      },
+      "prompt": "Quelle est la capitale de l'Australie ? Réponds en une seule phrase."
+    },
+    {
+      "name": "thinking_on",
+      "part": "a",
+      "description": "thinking activé, effort par défaut",
+      "runs": 1,
+      "spec": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "top_k": null,
+        "max_tokens": 384,
+        "seed": 0,
+        "thinking": true,
+        "reasoning_effort": null,
+        "effort_in_template": false,
+        "presence_penalty": null,
+        "tools": []
+      },
+      "prompt": "Quelle est la capitale de l'Australie ? Réponds en une seule phrase."
+    },
+    {
+      "name": "effort_low",
+      "part": "a",
+      "description": "effort=low (paramètre de niveau supérieur)",
+      "runs": 1,
+      "spec": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "top_k": null,
+        "max_tokens": 384,
+        "seed": 0,
+        "thinking": true,
+        "reasoning_effort": "low",
+        "effort_in_template": false,
+        "presence_penalty": null,
+        "tools": []
+      },
+      "prompt": "Quelle est la capitale de l'Australie ? Réponds en une seule phrase."
+    },
+    {
+      "name": "effort_xhigh",
+      "part": "a",
+      "description": "effort=xhigh (paramètre de niveau supérieur)",
+      "runs": 1,
+      "spec": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "top_k": null,
+        "max_tokens": 384,
+        "seed": 0,
+        "thinking": true,
+        "reasoning_effort": "xhigh",
+        "effort_in_template": false,
+        "presence_penalty": null,
+        "tools": []
+      },
+      "prompt": "Quelle est la capitale de l'Australie ? Réponds en une seule phrase."
+    },
+    {
+      "name": "effort_xhigh_tpl",
+      "part": "a",
+      "description": "effort=xhigh (dans chat_template_kwargs)",
+      "runs": 1,
+      "spec": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "top_k": null,
+        "max_tokens": 384,
+        "seed": 0,
+        "thinking": true,
+        "reasoning_effort": "xhigh",
+        "effort_in_template": true,
+        "presence_penalty": null,
+        "tools": []
+      },
+      "prompt": "Quelle est la capitale de l'Australie ? Réponds en une seule phrase."
+    },
+    {
+      "name": "debit_ref",
+      "part": "b",
+      "description": "débit de référence (3 runs identiques)",
+      "runs": 3,
+      "spec": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "top_k": null,
+        "max_tokens": 160,
+        "seed": 0,
+        "thinking": true,
+        "reasoning_effort": "low",
+        "effort_in_template": false,
+        "presence_penalty": null,
+        "tools": []
+      },
+      "prompt": "Un train part à 9h15 et roule pendant 2h40. À quelle heure arrive-t-il ? Termine ta réponse par « Réponse : HH:MM »."
+    },
+    {
+      "name": "tool_call",
+      "part": "c",
+      "description": "appel d'outil (valide --tool-call-parser / --enable-auto-tool-choice)",
+      "runs": 1,
+      "spec": {
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "top_k": null,
+        "max_tokens": 160,
+        "seed": 0,
+        "thinking": false,
+        "reasoning_effort": null,
+        "effort_in_template": false,
+        "presence_penalty": null,
+        "tools": [
+          {
+            "type": "function",
+            "function": {
+              "name": "get_weather",
+              "description": "Donne la météo actuelle pour une ville.",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "location": {
+                    "type": "string",
+                    "description": "Ville, ex. Lyon"
+                  },
+                  "unit": {
+                    "type": "string",
+                    "enum": [
+                      "celsius",
+                      "fahrenheit"
+                    ]
+                  }
+                },
+                "required": [
+                  "location"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "prompt": "Quel temps fait-il à Lyon ? Utilise l'outil get_weather."
+    }
+  ],
+  "samples": [
+    {
+      "config": "thinking_off",
+      "model": "Qwen/Qwen3.8-27B",
+      "prompt": "Quelle est la capitale de l'Australie ? Réponds en une seule phrase.",
+      "request_body": {
+        "model": "Qwen/Qwen3.8-27B",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Quelle est la capitale de l'Australie ? Réponds en une seule phrase."
+          }
+        ],
+        "max_tokens": 384,
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "chat_template_kwargs": {
+          "enable_thinking": false,
+          "preserve_thinking": true
+        },
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "seed": 0
+      },
+      "started_at": "2026-10-16T20:41:13.034764+00:00",
+      "http_status": 200,
+      "metrics": {
+        "ttft_s": 0.352588,
+        "e2e_s": 2.755481,
+        "decode_s": 2.171852,
+        "decode_tok_s": 4.604,
+        "itl_p50_s": 0.242129,
+        "itl_p95_s": 0.248851,
+        "n_total_tok": 11,
+        "n_prompt_tok": 30,
+        "n_reasoning_events": 0,
+        "n_answer_events": 10,
+        "n_tool_events": 0,
+        "reasoning_share": 0.0,
+        "usage_authoritative": true,
+        "finish_reason": "stop",
+        "warnings": []
+      },
+      "reasoning_text": "",
+      "answer_text": "La capitale de l'Australie est Canberra.",
+      "tool_calls": []
+    },
+    {
+      "config": "thinking_on",
+      "model": "Qwen/Qwen3.8-27B",
+      "prompt": "Quelle est la capitale de l'Australie ? Réponds en une seule phrase.",
+      "request_body": {
+        "model": "Qwen/Qwen3.8-27B",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Quelle est la capitale de l'Australie ? Réponds en une seule phrase."
+          }
+        ],
+        "max_tokens": 384,
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "chat_template_kwargs": {
+          "enable_thinking": true,
+          "preserve_thinking": true
+        },
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "seed": 0
+      },
+      "started_at": "2026-10-16T20:41:15.790507+00:00",
+      "http_status": 200,
+      "metrics": {
+        "ttft_s": 0.553136,
+        "e2e_s": 12.955391,
+        "decode_s": 12.150776,
+        "decode_tok_s": 4.197,
+        "itl_p50_s": 0.241555,
+        "itl_p95_s": 0.255638,
+        "n_total_tok": 52,
+        "n_prompt_tok": 70,
+        "n_reasoning_events": 38,
+        "n_answer_events": 10,
+        "n_tool_events": 0,
+        "reasoning_share": 0.7917,
+        "usage_authoritative": true,
+        "finish_reason": "stop",
+        "warnings": []
+      },
+      "reasoning_text": "The user is asking in French: \"What is the capital of Australia? Answer in one sentence.\" I need to respond in French, in one sentence. The capital of Australia is Canberra.",
+      "answer_text": "La capitale de l'Australie est Canberra.",
+      "tool_calls": []
+    },
+    {
+      "config": "effort_low",
+      "model": "Qwen/Qwen3.8-27B",
+      "prompt": "Quelle est la capitale de l'Australie ? Réponds en une seule phrase.",
+      "request_body": {
+        "model": "Qwen/Qwen3.8-27B",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Quelle est la capitale de l'Australie ? Réponds en une seule phrase."
+          }
+        ],
+        "max_tokens": 384,
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "chat_template_kwargs": {
+          "enable_thinking": true,
+          "preserve_thinking": true
+        },
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "seed": 0,
+        "reasoning_effort": "low"
+      },
+      "started_at": "2026-10-16T20:41:28.746375+00:00",
+      "http_status": 200,
+      "metrics": {
+        "ttft_s": 0.535852,
+        "e2e_s": 13.327757,
+        "decode_s": 12.550255,
+        "decode_tok_s": 4.223,
+        "itl_p50_s": 0.241253,
+        "itl_p95_s": 0.24533,
+        "n_total_tok": 54,
+        "n_prompt_tok": 58,
+        "n_reasoning_events": 40,
+        "n_answer_events": 10,
+        "n_tool_events": 0,
+        "reasoning_share": 0.8,
+        "usage_authoritative": true,
+        "finish_reason": "stop",
+        "warnings": []
+      },
+      "reasoning_text": "The user is asking in French: \"What is the capital of Australia? Answer in one sentence.\"\n\nThe capital of Australia is Canberra. I need to respond in French, in a single sentence.",
+      "answer_text": "La capitale de l'Australie est Canberra.",
+      "tool_calls": []
+    },
+    {
+      "config": "effort_xhigh",
+      "model": "Qwen/Qwen3.8-27B",
+      "prompt": "Quelle est la capitale de l'Australie ? Réponds en une seule phrase.",
+      "request_body": {
+        "model": "Qwen/Qwen3.8-27B",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Quelle est la capitale de l'Australie ? Réponds en une seule phrase."
+          }
+        ],
+        "max_tokens": 384,
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "chat_template_kwargs": {
+          "enable_thinking": true,
+          "preserve_thinking": true
+        },
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "seed": 0,
+        "reasoning_effort": "xhigh"
+      },
+      "started_at": "2026-10-16T20:41:42.074573+00:00",
+      "http_status": 200,
+      "metrics": {
+        "ttft_s": 0.537554,
+        "e2e_s": 12.878772,
+        "decode_s": 12.100021,
+        "decode_tok_s": 4.215,
+        "itl_p50_s": 0.241534,
+        "itl_p95_s": 0.247282,
+        "n_total_tok": 52,
+        "n_prompt_tok": 70,
+        "n_reasoning_events": 38,
+        "n_answer_events": 10,
+        "n_tool_events": 0,
+        "reasoning_share": 0.7917,
+        "usage_authoritative": true,
+        "finish_reason": "stop",
+        "warnings": []
+      },
+      "reasoning_text": "The user is asking in French: \"What is the capital of Australia? Answer in one sentence.\" I need to respond in French, in one sentence. The capital of Australia is Canberra.",
+      "answer_text": "La capitale de l'Australie est Canberra.",
+      "tool_calls": []
+    },
+    {
+      "config": "effort_xhigh_tpl",
+      "model": "Qwen/Qwen3.8-27B",
+      "prompt": "Quelle est la capitale de l'Australie ? Réponds en une seule phrase.",
+      "request_body": {
+        "model": "Qwen/Qwen3.8-27B",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Quelle est la capitale de l'Australie ? Réponds en une seule phrase."
+          }
+        ],
+        "max_tokens": 384,
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "chat_template_kwargs": {
+          "enable_thinking": true,
+          "preserve_thinking": true,
+          "reasoning_effort": "xhigh"
+        },
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "seed": 0
+      },
+      "started_at": "2026-10-16T20:41:54.953915+00:00",
+      "http_status": 200,
+      "metrics": {
+        "ttft_s": 0.535316,
+        "e2e_s": 12.829066,
+        "decode_s": 12.046403,
+        "decode_tok_s": 4.234,
+        "itl_p50_s": 0.240623,
+        "itl_p95_s": 0.246042,
+        "n_total_tok": 52,
+        "n_prompt_tok": 70,
+        "n_reasoning_events": 38,
+        "n_answer_events": 10,
+        "n_tool_events": 0,
+        "reasoning_share": 0.7917,
+        "usage_authoritative": true,
+        "finish_reason": "stop",
+        "warnings": []
+      },
+      "reasoning_text": "The user is asking in French: \"What is the capital of Australia? Answer in one sentence.\" I need to respond in French, in one sentence. The capital of Australia is Canberra.",
+      "answer_text": "La capitale de l'Australie est Canberra.",
+      "tool_calls": []
+    },
+    {
+      "config": "debit_ref",
+      "model": "Qwen/Qwen3.8-27B",
+      "prompt": "Un train part à 9h15 et roule pendant 2h40. À quelle heure arrive-t-il ? Termine ta réponse par « Réponse : HH:MM ».",
+      "request_body": {
+        "model": "Qwen/Qwen3.8-27B",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Un train part à 9h15 et roule pendant 2h40. À quelle heure arrive-t-il ? Termine ta réponse par « Réponse : HH:MM »."
+          }
+        ],
+        "max_tokens": 160,
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "chat_template_kwargs": {
+          "enable_thinking": true,
+          "preserve_thinking": true
+        },
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "seed": 0,
+        "reasoning_effort": "low"
+      },
+      "started_at": "2026-10-16T20:42:07.783413+00:00",
+      "http_status": 200,
+      "metrics": {
+        "ttft_s": 0.507366,
+        "e2e_s": 36.394419,
+        "decode_s": 35.659904,
+        "decode_tok_s": 4.291,
+        "itl_p50_s": 0.23518,
+        "itl_p95_s": 0.248299,
+        "n_total_tok": 154,
+        "n_prompt_tok": 77,
+        "n_reasoning_events": 91,
+        "n_answer_events": 57,
+        "n_tool_events": 0,
+        "reasoning_share": 0.6149,
+        "usage_authoritative": true,
+        "finish_reason": "stop",
+        "warnings": []
+      },
+      "reasoning_text": "I need to calculate the arrival time of a train that departs at 9:15 and travels for 2 hours and 40 minutes.\n\nStarting time: 9:15\nDuration: 2h 40min\n\nAdding the hours: 9 + 2 = 11\nAdding the minutes: 15 + 40 = 55\n\nSo the arrival time is 11:55.",
+      "answer_text": "Le train part à 9h15 et roule pendant 2h40.\n\n- Heures : 9 + 2 = 11\n- Minutes : 15 + 40 = 55\n\nRéponse : 11:55",
+      "tool_calls": []
+    },
+    {
+      "config": "debit_ref",
+      "model": "Qwen/Qwen3.8-27B",
+      "prompt": "Un train part à 9h15 et roule pendant 2h40. À quelle heure arrive-t-il ? Termine ta réponse par « Réponse : HH:MM ».",
+      "request_body": {
+        "model": "Qwen/Qwen3.8-27B",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Un train part à 9h15 et roule pendant 2h40. À quelle heure arrive-t-il ? Termine ta réponse par « Réponse : HH:MM »."
+          }
+        ],
+        "max_tokens": 160,
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "chat_template_kwargs": {
+          "enable_thinking": true,
+          "preserve_thinking": true
+        },
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "seed": 0,
+        "reasoning_effort": "low"
+      },
+      "started_at": "2026-10-16T20:42:44.178539+00:00",
+      "http_status": 200,
+      "metrics": {
+        "ttft_s": 0.500416,
+        "e2e_s": 35.581333,
+        "decode_s": 34.847002,
+        "decode_tok_s": 4.391,
+        "itl_p50_s": 0.227198,
+        "itl_p95_s": 0.242439,
+        "n_total_tok": 154,
+        "n_prompt_tok": 77,
+        "n_reasoning_events": 91,
+        "n_answer_events": 57,
+        "n_tool_events": 0,
+        "reasoning_share": 0.6149,
+        "usage_authoritative": true,
+        "finish_reason": "stop",
+        "warnings": []
+      },
+      "reasoning_text": "I need to calculate the arrival time of a train that departs at 9:15 and travels for 2 hours and 40 minutes.\n\nStarting time: 9:15\nDuration: 2h 40min\n\nAdding the hours: 9 + 2 = 11\nAdding the minutes: 15 + 40 = 55\n\nSo the arrival time is 11:55.",
+      "answer_text": "Le train part à 9h15 et roule pendant 2h40.\n\n- Heures : 9 + 2 = 11\n- Minutes : 15 + 40 = 55\n\nRéponse : 11:55",
+      "tool_calls": []
+    },
+    {
+      "config": "debit_ref",
+      "model": "Qwen/Qwen3.8-27B",
+      "prompt": "Un train part à 9h15 et roule pendant 2h40. À quelle heure arrive-t-il ? Termine ta réponse par « Réponse : HH:MM ».",
+      "request_body": {
+        "model": "Qwen/Qwen3.8-27B",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Un train part à 9h15 et roule pendant 2h40. À quelle heure arrive-t-il ? Termine ta réponse par « Réponse : HH:MM »."
+          }
+        ],
+        "max_tokens": 160,
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "chat_template_kwargs": {
+          "enable_thinking": true,
+          "preserve_thinking": true
+        },
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "seed": 0,
+        "reasoning_effort": "low"
+      },
+      "started_at": "2026-10-16T20:43:19.760517+00:00",
+      "http_status": 200,
+      "metrics": {
+        "ttft_s": 0.519975,
+        "e2e_s": 35.849817,
+        "decode_s": 35.104061,
+        "decode_tok_s": 4.358,
+        "itl_p50_s": 0.22813,
+        "itl_p95_s": 0.243225,
+        "n_total_tok": 154,
+        "n_prompt_tok": 77,
+        "n_reasoning_events": 91,
+        "n_answer_events": 57,
+        "n_tool_events": 0,
+        "reasoning_share": 0.6149,
+        "usage_authoritative": true,
+        "finish_reason": "stop",
+        "warnings": []
+      },
+      "reasoning_text": "I need to calculate the arrival time of a train that departs at 9:15 and travels for 2 hours and 40 minutes.\n\nStarting time: 9:15\nDuration: 2h 40min\n\nAdding the hours: 9 + 2 = 11\nAdding the minutes: 15 + 40 = 55\n\nSo the arrival time is 11:55.",
+      "answer_text": "Le train part à 9h15 et roule pendant 2h40.\n\n- Heures : 9 + 2 = 11\n- Minutes : 15 + 40 = 55\n\nRéponse : 11:55",
+      "tool_calls": []
+    },
+    {
+      "config": "tool_call",
+      "model": "Qwen/Qwen3.8-27B",
+      "prompt": "Quel temps fait-il à Lyon ? Utilise l'outil get_weather.",
+      "request_body": {
+        "model": "Qwen/Qwen3.8-27B",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Quel temps fait-il à Lyon ? Utilise l'outil get_weather."
+          }
+        ],
+        "max_tokens": 160,
+        "temperature": 0.0,
+        "top_p": 1.0,
+        "chat_template_kwargs": {
+          "enable_thinking": false,
+          "preserve_thinking": true
+        },
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "seed": 0,
+        "tools": [
+          {
+            "type": "function",
+            "function": {
+              "name": "get_weather",
+              "description": "Donne la météo actuelle pour une ville.",
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "location": {
+                    "type": "string",
+                    "description": "Ville, ex. Lyon"
+                  },
+                  "unit": {
+                    "type": "string",
+                    "enum": [
+                      "celsius",
+                      "fahrenheit"
+                    ]
+                  }
+                },
+                "required": [
+                  "location"
+                ]
+              }
+            }
+          }
+        ],
+        "tool_choice": "auto"
+      },
+      "started_at": "2026-10-16T20:43:55.611180+00:00",
+      "http_status": 200,
+      "metrics": {
+        "ttft_s": 9.356577,
+        "e2e_s": 9.581517,
+        "decode_s": 0.0,
+        "decode_tok_s": 0.0,
+        "itl_p50_s": 0.0,
+        "itl_p95_s": 0.0,
+        "n_total_tok": 40,
+        "n_prompt_tok": 318,
+        "n_reasoning_events": 0,
+        "n_answer_events": 0,
+        "n_tool_events": 2,
+        "reasoning_share": 0.0,
+        "usage_authoritative": true,
+        "finish_reason": "tool_calls",
+        "warnings": [
+          "moins de 2 tokens : débit de décodage non mesurable",
+          "aucun token de réponse (raisonnement seul ou sortie tronquée)"
+        ]
+      },
+      "reasoning_text": "",
+      "answer_text": "",
+      "tool_calls": [
+        {
+          "id": "call_ce9a4f8126c94cbe96cd71d2",
+          "name": "get_weather",
+          "arguments": "{\"location\":\"Lyon\",\"unit\":\"celsius\"}"
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "summary": {
+    "thinking_off": {
+      "runs": 1,
+      "ttft_s_median": 0.3526,
+      "decode_tok_s_median": 4.604,
+      "e2e_s_median": 2.7555,
+      "n_total_tok_median": 11.0,
+      "n_reasoning_events_median": 0.0,
+      "n_answer_events_median": 10.0,
+      "finish_reasons": [
+        "stop"
+      ]
+    },
+    "thinking_on": {
+      "runs": 1,
+      "ttft_s_median": 0.5531,
+      "decode_tok_s_median": 4.197,
+      "e2e_s_median": 12.9554,
+      "n_total_tok_median": 52.0,
+      "n_reasoning_events_median": 38.0,
+      "n_answer_events_median": 10.0,
+      "finish_reasons": [
+        "stop"
+      ]
+    },
+    "effort_low": {
+      "runs": 1,
+      "ttft_s_median": 0.5359,
+      "decode_tok_s_median": 4.223,
+      "e2e_s_median": 13.3278,
+      "n_total_tok_median": 54.0,
+      "n_reasoning_events_median": 40.0,
+      "n_answer_events_median": 10.0,
+      "finish_reasons": [
+        "stop"
+      ]
+    },
+    "effort_xhigh": {
+      "runs": 1,
+      "ttft_s_median": 0.5376,
+      "decode_tok_s_median": 4.215,
+      "e2e_s_median": 12.8788,
+      "n_total_tok_median": 52.0,
+      "n_reasoning_events_median": 38.0,
+      "n_answer_events_median": 10.0,
+      "finish_reasons": [
+        "stop"
+      ]
+    },
+    "effort_xhigh_tpl": {
+      "runs": 1,
+      "ttft_s_median": 0.5353,
+      "decode_tok_s_median": 4.234,
+      "e2e_s_median": 12.8291,
+      "n_total_tok_median": 52.0,
+      "n_reasoning_events_median": 38.0,
+      "n_answer_events_median": 10.0,
+      "finish_reasons": [
+        "stop"
+      ]
+    },
+    "debit_ref": {
+      "runs": 3,
+      "ttft_s_median": 0.5074,
+      "decode_tok_s_median": 4.358,
+      "e2e_s_median": 35.8498,
+      "n_total_tok_median": 154.0,
+      "n_reasoning_events_median": 91.0,
+      "n_answer_events_median": 57.0,
+      "finish_reasons": [
+        "stop"
+      ]
+    },
+    "tool_call": {
+      "runs": 1,
+      "ttft_s_median": 9.3566,
+      "decode_tok_s_median": 0.0,
+      "e2e_s_median": 9.5815,
+      "n_total_tok_median": 40.0,
+      "n_reasoning_events_median": 0.0,
+      "n_answer_events_median": 0.0,
+      "finish_reasons": [
+        "tool_calls"
+      ]
+    }
+  },
+  "findings": {
+    "c2_split_raisonnement": {
+      "ok": true,
+      "detail": "raisonnement thinking=off : 0 événements, thinking=on : 38"
+    },
+    "c3_effort_top_level": {
+      "ok": false,
+      "detail": "reasoning_effort au niveau supérieur : xhigh=38 vs low=40 événements (ratio 0.95)"
+    },
+    "c3b_effort_via_template": {
+      "ok": false,
+      "detail": "reasoning_effort via chat_template_kwargs : xhigh=38 vs low=40 événements (ratio 0.95)"
+    },
+    "c4_usage_coherent": {
+      "ok": true,
+      "detail": "9/9 échantillons avec usage autoritaire ; prompt≈70 tokens, complétion≈52"
+    },
+    "c5_dispersion_debit": {
+      "ok": true,
+      "detail": "min 4.29 / max 4.39 tok/s (ratio 1.023, seuil 1.10 sur 3 runs)"
+    },
+    "c6_plage_physique": {
+      "ok": true,
+      "detail": "4.36 tok/s (attendu 2.0-6.5 tok/s pour 54 Go BF16 à ~273 Go/s)"
+    },
+    "c_tool_calls": {
+      "ok": true,
+      "detail": "1 appel(s) d'outil assemblé(s), 1 nommé(s), 1 avec arguments JSON valides"
+    }
+  }
+}

@@ -221,3 +221,8 @@ __marimo__/
 .env
 cache/
 checkpoints/
+
+# Generated artefacts: reproducible, large, never committed
+benchmarks/datasets/
+benchmarks/samples/
+benchmarks/ref_logits/

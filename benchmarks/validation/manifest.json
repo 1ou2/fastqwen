@@ -1,0 +1,1558 @@
+{
+  "script": "scripts/build_eval_datasets.py",
+  "built_at": "2026-10-18T22:39:34.873688+02:00",
+  "sources": {
+    "qualitative": {
+      "path": "data/prompts/qualitative-30.jsonl",
+      "sha256": "02ff70c32b18bae403eccc8d87b7aac6201839b249760ca4231e40d8a25dd921",
+      "rows": 30
+    },
+    "validation": {
+      "path": "data/prompts/validation-seed.jsonl",
+      "sha256": "1714f3bee52f860789752158d30f8250709254d9af7a3a5824bdfc2618c7574c",
+      "rows": 60
+    },
+    "tools": {
+      "path": "data/prompts/tools.json",
+      "sha256": "8b66c3a5c521a245328e50655e2432cf9d09f7de380ba8ca8899528bc59eec77",
+      "sets": [
+        "currency",
+        "search",
+        "tickets",
+        "weather"
+      ]
+    }
+  },
+  "datasets": {
+    "qualitative": {
+      "path": "benchmarks/prompts/eval_prompts.jsonl",
+      "sha256": "a7a7b272147d7d7050d6bb27686ad57c3ab8b8aaa92bd714d0c750193b09aed0",
+      "rows": 30,
+      "by_category": {
+        "api_design": 1,
+        "classify": 1,
+        "code_explain": 1,
+        "code_gen": 2,
+        "code_repair": 1,
+        "extract": 1,
+        "git": 1,
+        "grammar": 1,
+        "honesty": 1,
+        "json_out": 1,
+        "logic": 1,
+        "long_context": 1,
+        "math_reason": 1,
+        "math_word": 1,
+        "performance": 1,
+        "refactor": 1,
+        "regex": 1,
+        "rewrite": 1,
+        "security": 1,
+        "shell": 1,
+        "sql_debug": 1,
+        "summarize": 1,
+        "table": 1,
+        "tool_call": 1,
+        "tool_chain": 1,
+        "tool_choice": 1,
+        "tool_refusal": 1,
+        "translate": 1,
+        "units": 1
+      },
+      "by_language": {
+        "en": 13,
+        "fr": 17
+      },
+      "by_grade": {
+        "identity": 30
+      }
+    },
+    "validation": {
+      "path": "benchmarks/validation/acceptance.jsonl",
+      "sha256": "e3ac77decf675eadd8464b5e23221ac2b82ba0bc6670803a87703b9b49b772d4",
+      "rows": 60,
+      "by_slice": {
+        "S1": 20,
+        "S2": 20,
+        "S3": 20
+      },
+      "by_language": {
+        "bash": 2,
+        "en": 19,
+        "fr": 21,
+        "js": 1,
+        "py": 14,
+        "sql": 3
+      },
+      "with_tools": 20
+    }
+  },
+  "contamination": {
+    "checked": [
+      "qualitative",
+      "quality200",
+      "validation"
+    ],
+    "duplicates": []
+  },
+  "exclusion": {
+    "note": "normalized prompt hashes the teacher must never train on (§7)",
+    "count": 290,
+    "prompts": [
+      {
+        "dataset": "qualitative",
+        "id": "qual-01",
+        "sha256": "1f4cc29fbe6e93a4a838831ef02090f184538e825a84f11d17194ae419b0e20b"
+      },
+      {
+        "dataset": "qualitative",
+        "id": "qual-02",
+        "sha256": "5396fdb2917a973c4ae59aca22c1bb769899d42f7739da2e672bd1335637a010"
+      },
+      {
+        "dataset": "qualitative",
+        "id": "qual-03",
+        "sha256": "070776b6386dc0ac5493e403134b9aea3dea2c65db3585502e8a14d995b34e85"
+      },
+      {
+        "dataset": "qualitative",
+        "id": "qual-04",
+        "sha256": "cb4cf85a4a398d0eef77253fa89fff96989d69ae85157a78f120b4aa6f0cad51"
+      },
+      {
+        "dataset": "qualitative",
+        "id": "qual-05",
+        "sha256": "921870b569714535bd76b044edee9cc1423b6dbb18e4d5f76f00328628925c9d"
+      },
+      {
+        "dataset": "qualitative",
+        "id": "qual-06",
+        "sha256": "c31b9b2effe86ceb1be35b723e92d415bd97216f26b535c3e5649969a1cb9446"
+      },
+      {
+        "dataset": "qualitative",
+        "id": "qual-07",
+        "sha256": "e921b9bbc13aa6b62cd31aabaf255c82d516d48865de5f34002a5aa5f21f98f8"
+      },
+      {
+        "dataset": "qualitative",
+        "id": "qual-08",
+        "sha256": "b68be5b04a289560af38808e1cea67714317028caf89ebf7514875529aa1e07e"
+      },
+      {
+        "dataset": "qualitative",
+        "id": "qual-09",
+        "sha256": "f67b71b21fde1d3ec242f6bfe3140acb2bdd74b80302e2fc6f33d3dcc3db78d9"
+      },
+      {
+        "dataset": "qualitative",
+        "id": "qual-10",
+        "sha256": "14653de4a796a58ed511428f8e3e2a6d027e1ae51623ad39dea81d12ded91817"
+      },
+      {
+        "dataset": "qualitative",
+        "id": "qual-11",
+        "sha256": "caabd6f75c15b5730e86d7a48c64dfccf3ab9d4f0bc747fb21615a7ed06db79b"
+      },
+      {
+        "dataset": "qualitative",
+        "id": "qual-12",
+        "sha256": "a978d3de1d01df6724c111886a59379e43712b32bdbdc4391bad313228350718"
+      },
+      {
+        "dataset": "qualitative",
+        "id": "qual-13",
+        "sha256": "26561cf853de134f5a6c79b46a166b1edf2e72403471f2a3bed9c19bf0d6f7cf"
+      },
+      {
+        "dataset": "qualitative",
+        "id": "qual-14",
+        "sha256": "6f9e515748d6b92506c1028739079dcbd17dedd10a5d9205308847dc78a806c2"
+      },
+      {
+        "dataset": "qualitative",
+        "id": "qual-15",
+        "sha256": "f66f112e18178d2775011bfd6d290c97382a4a1ed5bab5dc12de165fb5ceb11f"
+      },
+      {
+        "dataset": "qualitative",
+        "id": "qual-16",
+        "sha256": "9b764cc3a2022b63b7d54f2f6e67ae12207c2ee31d7e8ff06aa13f71ef87e6dc"
+      },
+      {
+        "dataset": "qualitative",
+        "id": "qual-17",
+        "sha256": "a9d370df084b0070722a80daa267900bd00f8f348577a5c49ae0544f1213926d"
+      },
+      {
+        "dataset": "qualitative",
+        "id": "qual-18",
+        "sha256": "2e4fa3bd8cc36ef31eec1ba68ae63d0aef110e17ee7dc284815f35ca9b4f7706"
+      },
+      {
+        "dataset": "qualitative",
+        "id": "qual-19",
+        "sha256": "80050ad1144d3a47bcbbfc1c71f5481011ad56dac12c2758a4db64990ced6177"
+      },
+      {
+        "dataset": "qualitative",
+        "id": "qual-20",
+        "sha256": "2b053e69fb1db94eccd040a61180cbd651219dfaf7965cb37bb9ee7ca530445f"
+      },
+      {
+        "dataset": "qualitative",
+        "id": "qual-21",
+        "sha256": "5cff409f35dd0c04d453257bae12c4b34d8eb0655c7d3308d04ed6f2baa981f5"
+      },
+      {
+        "dataset": "qualitative",
+        "id": "qual-22",
+        "sha256": "1cd633fa7f9f9fc1ef74c94805806c71da7a11a9a68da6ad2185ee0eacdd9309"
+      },
+      {
+        "dataset": "qualitative",
+        "id": "qual-23",
+        "sha256": "68582998935194538f46d2c32256cabc63f2fa8b8934838bdc31a2e09273428f"
+      },
+      {
+        "dataset": "qualitative",
+        "id": "qual-24",
+        "sha256": "bf5a731cb36ff34c130e3f51748ad0b912c380b0464653fd3601bf4b46bf39e6"
+      },
+      {
+        "dataset": "qualitative",
+        "id": "qual-25",
+        "sha256": "ab75c992797ada7ccc93072076579176a34c6b6c43f068016dbf3db35f7aa359"
+      },
+      {
+        "dataset": "qualitative",
+        "id": "qual-26",
+        "sha256": "7b606089fdb5505dd0f4c63243d011d67172e6b83a2cb8a5840a65ae3cfabd28"
+      },
+      {
+        "dataset": "qualitative",
+        "id": "qual-27",
+        "sha256": "90677344d749d66e561ff4f12bdd73a1ad8c4b976a5163a76d56863e68217da7"
+      },
+      {
+        "dataset": "qualitative",
+        "id": "qual-28",
+        "sha256": "fcfc731cd3710a4814026f7ee396c844dc9e8970f46471d5bfc0692752bcc294"
+      },
+      {
+        "dataset": "qualitative",
+        "id": "qual-29",
+        "sha256": "de97bf739d5a0290910d3d110825ca3f5ab5384d3671e17d17e7e73455aa6c44"
+      },
+      {
+        "dataset": "qualitative",
+        "id": "qual-30",
+        "sha256": "5452ae1b90b660dea9c2b5c45f2fa119c0e5488a96ebaaa13a7b477c9f5015e6"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s1-01",
+        "sha256": "e6e31f8969df959be621634e5b4f1f12139bd58ad2914171fd0d590690e99c59"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s1-02",
+        "sha256": "1d1ebe476ca0b7fb37d8cc300ed1aa8bd13496e1da554f04e83a22fe093b82df"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s1-03",
+        "sha256": "e6bcdcd3b9ed4c2a15c98708345045299322173e4ef68ebac01873c6460661d5"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s1-04",
+        "sha256": "02f79db2b2df414b1e05f9e2cf3eec987718e1f94db9d931a490b67224468316"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s1-05",
+        "sha256": "8426567d06d29ba1bf4de7882dbcc0575a79452d7e2e82344333f07426403345"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s1-06",
+        "sha256": "e31490d6ed5ada91ff4bc4df9d64a3b40ae5caf6ff34fdcf8fc9732e4f2273ed"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s1-07",
+        "sha256": "cc8bd991152b61ad8146da5d34e735281bdf30038dbcb29d0c9ab4d455244282"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s1-08",
+        "sha256": "d4755c72886164223aae43af69ea345e5e5ddd23b1ddb9d505b42586612fce82"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s1-09",
+        "sha256": "ce064ea77029325760e8324b18c9169bad600e8239a1aec4214f999817d97cc2"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s1-10",
+        "sha256": "4d9afc16f0def107ef3e335a0a38b69a05a8f5f2ddcf6c90bb1a454341d9f739"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s1-11",
+        "sha256": "5c6bbc44fc71206be692b2ad22d27c489ae3bd24732b3c306f48a7eaab254d25"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s1-12",
+        "sha256": "63ac7ceb2a42c05732762619069d394904368af7c059fa429087a3f7bdb1de78"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s1-13",
+        "sha256": "19aceaa542f58a3112100c8e1a11aed750fafa10f555c4c11b964f6c431ecbd0"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s1-14",
+        "sha256": "8c6d6eb62130bc5473e0bbd40d3500fe7d0e06df5dcd52b0744a2cf8d1428113"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s1-15",
+        "sha256": "62c126c8ee6cd45dbdff92bf8f6876324a0a11c92de5cadabf1725ccb3ad3d36"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s1-16",
+        "sha256": "f6cc6699f00326f5106481e62a40fcce6e78d92430bc3be129d7d2b403f3f18e"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s1-17",
+        "sha256": "0cfead2368189a5cc131c231c9ef435208bdf1a908bedb2fe6fa2b8999e145be"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s1-18",
+        "sha256": "f057049167ba097134246d81d2c55d331cc8c14b703b4640df8e1ea4a02cd6e3"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s1-19",
+        "sha256": "b6c58f6f9bb0d02f45768bb35b16a67e60eb0a188d337b591da39ea293328437"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s1-20",
+        "sha256": "20b0963426869d2ca4511f3cd347bc53154e0e7595289cb243f00341e135fc3e"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s2-01",
+        "sha256": "2c8d777eeb1a681069d1dc14e935be67964b4295b0925f1b05000b7555c32be7"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s2-02",
+        "sha256": "1677cb9b8705245ccdfcf95199c5d9ec49e901d730112c685c211f256b006d5c"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s2-03",
+        "sha256": "d76a3521ec4447c5044ad0dd1fa525da745e7719b73da18062a902de50ce9de5"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s2-04",
+        "sha256": "c1d8c44a46c8a77e348cd1491064ec8105ed4d407d754cecb818289abb9bbdef"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s2-05",
+        "sha256": "10a8f49b67e1d85e6c003ed62e7743a1da77d7db15ca118f333c292c8ab2d6cb"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s2-06",
+        "sha256": "7a1a420e02701e56de4bc2e7a8aaeaa7cd330aebe6859b23c6f581e0a45314bf"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s2-07",
+        "sha256": "50954a06b7a7b5e91117a94452d9f8bc5ab9b6ff3886a4c865b2366fdcbefd45"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s2-08",
+        "sha256": "d0553d816f8a1c63caf60741673b21d122128577a31ca272403f48a6a907be33"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s2-09",
+        "sha256": "1fa769c40be16f3c7ce8e37c84d558b259854a354d8a7987070318e0ef3c8cf2"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s2-10",
+        "sha256": "41526c9072435d5cb900b56e240bf5014e15422a540ad6c27322b6907093099d"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s2-11",
+        "sha256": "b9490dc4e156c2034d451971d27f841f0fca33f286d054e6ed45870e4169c551"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s2-12",
+        "sha256": "d96838fabb7cb5b53233e4d33afa269855db6543de097dcacccf5b2d2109bec0"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s2-13",
+        "sha256": "9f26704aed91b59909440b8341f7b98d1c352a26e5624c812e63b7a6d9291dae"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s2-14",
+        "sha256": "a7ef20254f1b6d07fd586d165db70992b08ca0ceecab1c03fc4e1c8b609e8227"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s2-15",
+        "sha256": "7cac04698cbb8a348e767d0ce74cf99205a69aad41c2847c5951b102b684f81e"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s2-16",
+        "sha256": "ca4b550075f5fb37a6b9ba9fd5af5d27bd547a917701083439f3836726cc6d81"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s2-17",
+        "sha256": "0a2c940a4fcdf7ef9cda5226f0414cae5e74652a2542a77d45daeaa0262f3395"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s2-18",
+        "sha256": "7fe56d1fb786a389807d799af8a7d247227d84a07c1eb9acfa774b7bba1f04d2"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s2-19",
+        "sha256": "e9ce18331449cd9a549e510960797cccdbe5d49a4d6708725e93b4cb076bd7d8"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s2-20",
+        "sha256": "3b78baa80e91561953bb7a32badc8257a1aa6a0bf5879bf966104f0b17333eec"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s3-01",
+        "sha256": "79bbd80965b0740b7cc084265086e1ec692ec47376a22b2fcdf3d01ca8a4e4e4"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s3-02",
+        "sha256": "54339679aa3c2b148862d1ca87b66aedd6710e4cc5ba7256b3f8762648de312d"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s3-03",
+        "sha256": "c0fbff722ad8440732cc151c3d6a7350a5f27a70b1c43a3e69815744df4dbed7"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s3-04",
+        "sha256": "93f95994f143fc955fadc2f1443c518025267d95aaa2c74f207c5e57596bd96f"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s3-05",
+        "sha256": "b6d213b2eb0d0f8dbe2f0f6c45b4748b09978a194b38956861a11226022e4431"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s3-06",
+        "sha256": "8dd14e5fd9366568234319f8202d3cf34bae7bf8cfb6f6ce360ae9fe43d2c1aa"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s3-07",
+        "sha256": "1407996c78c10cf6fcf272e5ee11254fd31313a0f2cea5ba3e2e8034dbbbd9ea"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s3-08",
+        "sha256": "0c4fc65494997ca6d6928123336066deece98b151f8422950add4ec738a98886"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s3-09",
+        "sha256": "481d1d36dc8c0b9d5c2f03153c5e2cec68ca67c058b5f46434f55fb1bf609346"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s3-10",
+        "sha256": "8cd6f1de35466e2e19631e22136fa2aecd4fcb934d4e43bb8ebd04816cc9db92"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s3-11",
+        "sha256": "40860f836655713ad408a691e7484609db88c28e797ad828d9cb09eaa7b88f1a"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s3-12",
+        "sha256": "b251288de48c168582d3487d7929f99e28df5fedd2f51c86b4f9cabb4eb22f00"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s3-13",
+        "sha256": "75bcfaf504f4025584f88cc906f38989047c506d5088abb967856c77c4d29b27"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s3-14",
+        "sha256": "dd8ef74f983fab99d7c879e8d1ff8da3e08a554cc811b6b931522cdedc793f2d"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s3-15",
+        "sha256": "553598d798cfe493ad0a92f2cbc7dc9b6eff308297a7b1060318081362ca4639"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s3-16",
+        "sha256": "4ad8b60b100f41797736902a6ede677bc5c96c53a0b9faa6d5b6a44bd41c5f4e"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s3-17",
+        "sha256": "7f90768b3a3cad981f2149aa7fee0b50afeee056483f92ec707ab5b7395127f0"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s3-18",
+        "sha256": "50dfce53be56e8b68791c58b47c6631eaf3b32ab41685d436c9b0fd531362010"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s3-19",
+        "sha256": "ccb62316c046692c2abb182c5da1a345ec5851ef5d1436603803988740ecf302"
+      },
+      {
+        "dataset": "validation",
+        "id": "val-s3-20",
+        "sha256": "bc4f444b11fef43cbc6a20ff09fae336662b11d9ee8c5f7bd800494fd9ea5ac9"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-000",
+        "sha256": "f78edc10aba75fbbf43e0fb1463ef864849fb8f46c1d98a5c9f3488a8f3d18f4"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-001",
+        "sha256": "bf86614a1138628de4511b1fa3933009aea7340ff2411198f35d957e0ec3f39b"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-002",
+        "sha256": "92e8af667512936fcbabb3da581f0e2f1d4dc144f18fbbafdd928b105577eb9a"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-003",
+        "sha256": "ae9a505b22246b8a1402f2efc7c924a22b1df5080f0e8f6b4ff98c25287d7c04"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-004",
+        "sha256": "ed4128cfa1c0840d708702853cdd34bfe369fc926b47dfbb677b552e23dd44b2"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-005",
+        "sha256": "692423a3d3542197ed1991e0daab8e266cf773669d772ab0788f865c4416964a"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-006",
+        "sha256": "b177f97fc8aea29f4a2623ca7287859f4466e7bc216c1631fa5e1be783161819"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-007",
+        "sha256": "fde7aa359264ce019f52e9bd4d20e074501cbd29af57da3b6be393a779f32b8c"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-008",
+        "sha256": "fb94556955dc4ac951284404c3949272f0ee5be2799821224800d7dc50dddc37"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-009",
+        "sha256": "3a99b074b72815a547ba740fe7058ecf3f8b18c55a6032961fe81363da1dfcae"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-010",
+        "sha256": "c0972928c64edc93e750df4831a38b295ba020b170b78c139d0068fb992672f3"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-011",
+        "sha256": "ff6d25fa7858ec44717831f9f46343bc812d1c8737e10048c726ff9bd5d745a2"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-012",
+        "sha256": "6bd31803efd3c152dfd8cf72cfaf05b03caf272cd4bd166565f39a2b2a06ca51"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-013",
+        "sha256": "4c3e4784aeffddd61bf5d67d04e3ebe44dc318814877573e20753d8c74b589c2"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-014",
+        "sha256": "cfeb38b9e22a1d7b42d875149e95c4df773d76e56b3ef49427ec2dcdbb1e3071"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-015",
+        "sha256": "1554ee1ecd42fa4f25f06a2f6af9682ac5745b761c164149bf09ab632a02299d"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-016",
+        "sha256": "7ad5928a8a4264311619bbe2b3d7c541ce071cd13f4bfff12f2220863dd43928"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-017",
+        "sha256": "dc0d1e3a7090410aeec5a4081efb005e12b13645a84ceff9ca69ec7696d96001"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-018",
+        "sha256": "0e272a4128ea99c669321e4ef0c7e7dec4fa320c91cd15148b6de63999870d74"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-019",
+        "sha256": "59a95da7cc5037f114c9b299722efdd64cf70c25f24d62f5df344d90632fc6ee"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-020",
+        "sha256": "33c7676857a8af4b34e1a07979ba324ddbc4152f2102f55b7891748f937f94be"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-021",
+        "sha256": "d98dc75b522b26fc34890688482170c7ce1a93af4b9a955c19c768cdd8d11f85"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-022",
+        "sha256": "ef8cb755276a900f3b3d3da2d5caa04018281d253753fb0d0fdded5497a9fad5"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-023",
+        "sha256": "2039cdcbdf527388897a2bb50d314015a523df0f07c1b4dd7556c21947b7ce65"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-024",
+        "sha256": "2716c85805bba7542f243064b2ec7eeb1846d6d121eae31c93c9edeee6b57898"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-025",
+        "sha256": "de36e8d3884f60dad3d6beb9538b5a6c6ac3fd71992d277ab661bf28ef8199ad"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-026",
+        "sha256": "0e4d0454881478f9bd41bf0c0742862f3bc0b2862fba494759fb99ef6d2b1f86"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-027",
+        "sha256": "a8f8b0eb935948e09e172ffeb0f2ccdcbf5bd202eba46bd6e8dbf8ecb52c9aee"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-028",
+        "sha256": "020dd59bc4aa1d393f3f8d2ba2f4fc9cb35c442b2081a00d27aa4e6ccc254a67"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-029",
+        "sha256": "e15cade364cba28cf8c299e45df528a439e42d0c7184848e827edd7d7c7f2051"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-030",
+        "sha256": "847454263786de8d5fe08d36aee2135149bf906911c04bf21ce1ea3918072515"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-031",
+        "sha256": "d7014cde89a90f0984323819ce10204e6de96643842361e0016798709373b8af"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-032",
+        "sha256": "618a6f39e74d476de26b72be33015d3a045e3d19f2e466ea50d9e7949c1effd4"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-033",
+        "sha256": "c721c3ad10f82ca743667893b75da0f2cf28e4bd79df34524d7d0187362ea30c"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-034",
+        "sha256": "88ac9a96599c9c090846cd338afd3ff69208c9f52c20c5061a9a906f9fef2d06"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-035",
+        "sha256": "235ca067d0ef49e9c95a324dbb73e7020d90948b6a07b1f0a89bb37340dc845a"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-036",
+        "sha256": "a87ec9b9ddea5d14246050b4cce3d6ed4d72c7660641b5710bcb688887ff1556"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-037",
+        "sha256": "c79ea75c1f56a64aa6b7dc6990268e246c44538b24f62eb51cef8f3e5ed6f48c"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-038",
+        "sha256": "4a90cb3062d6e3e5aaff90bd623bb9697eb3bb09ae9f78b77cb258ba6ab59367"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-039",
+        "sha256": "0df5373de2458bb7cd11070ad67838f28f611b0231fc56f4c9630eef844d0672"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-040",
+        "sha256": "74c6ee73833d37fff08d2ac9e082f91ebf0823cd5fd408bb2d1c331f5b822a76"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-041",
+        "sha256": "d5bb80a1b211b54fd3108a278671e29401b061c8817a645a828d6b7ea4e6f047"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-042",
+        "sha256": "4c190c10bed73c09f1b660633d5a398262b9fd622a4eb525e507f5b049bb3aa3"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-043",
+        "sha256": "d323a2064056dd4df58ddac4840c8f3e01b78df98429cf2eaea46aac2d8fb537"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-044",
+        "sha256": "9a2c9bf059d93ef84fd0b9e6873d9b65a5fa32ed13c0a193996396bf17f00fd5"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-045",
+        "sha256": "9416a2928b24224362ae23ac7c95363d4adf819dafbf20197899146c5140d3d1"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-046",
+        "sha256": "e9ddba83943df9b4f80031d2a598bea355b707a0aa846ef87774af9d6f8db6fc"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-047",
+        "sha256": "c4cf5a2d11dceda20ce381f487fe53099e5f5a72ffe75720fd9e43f604a4fb51"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-048",
+        "sha256": "aac96410620d5cac42d3085dd87c7d824412b8472b5166e1ea2f48286f1b78ca"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-049",
+        "sha256": "e9f36dca63ccec0f378db473362bfe9e474b4bddcce0723245a6f08e8103695d"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-050",
+        "sha256": "78e9ac72cea953187abb6455d9a9ca7531d7b1f3d06633cb9ce6560536044f27"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-051",
+        "sha256": "f5347c0a17bc34f97b1e4102ab5c5b584ab099a713a4578866ded36183bb7ca4"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-052",
+        "sha256": "8ae8a06ea33b7dde2d6766d41166d910753909cf7a626d9fc32aa73d085db4d0"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-053",
+        "sha256": "fda74427273f05d4e1c3cf5f57391ed1b4a10e42049e64c862c5e68f0570fb58"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-054",
+        "sha256": "4a8724dc4e07af91ff208b3480097316881c1cc6d4dab10d1bc489bab1577441"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-055",
+        "sha256": "04eba02b7581f412070d43d8c4f38d1f9cf2036a21b192b758e859e7d9d8f474"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-056",
+        "sha256": "fdb1abfa3877c610fc2a2d8cd05bc7e3e323a8cec95f91b25e1a98d0c81ee8e5"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-057",
+        "sha256": "d03fe2c636400830b1671c3a2f97df1376fe195e37db48c0aac43725595d0192"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-058",
+        "sha256": "a81dc6f2fad3e6219728582d291cd8d69a4b7d17f1d99a23b82eb883e96f41a7"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-059",
+        "sha256": "a69383f0d89f13f7cfaa17f45c5c6f87a699546837912350ecde570820d4c37b"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-060",
+        "sha256": "99dea6c887a009328c7c7f80953a651b08cb026662e5e164c56074eea54ae810"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-061",
+        "sha256": "d331e498e3a88c05ac2ddb308e2f6f7a84679d610d0176cac7b4cef2e0a8713e"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-062",
+        "sha256": "3cf5a355df05a395acb50b3f4bac9defffa4c690b8838ec341993db9ee0402ee"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-063",
+        "sha256": "e523da96c1b8a8966b621ee68f8cae87d68596efd59fcbc07e4172692978a0f0"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-064",
+        "sha256": "cb3ade818942190d8edfaad4989b65306d76bb40076a9232379b954781abfd31"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-065",
+        "sha256": "1acc49e57f79ed8170c2891b434c4533e73e948d0c6e3fd763396d91cdc97f15"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-066",
+        "sha256": "e5014a10a922150b63ec72a32bd3b60d2f59558f91e2250800de632c01e55311"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-067",
+        "sha256": "cc3ffc0122ab5a2dbb70842186d3f14dc6b8f447423fb4f56e77c2ab3f8110e2"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-068",
+        "sha256": "fb0ae1db3c054e74651c6df636e69d799749f468d58c0877def41dba4dd0e8dd"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-069",
+        "sha256": "c795b4a2f56573748f202c3f32c08fbf8ab39674bfc41f9979cf3dcb1b8aa50c"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-070",
+        "sha256": "7cd8d086fb798457580446c730e33f5ac48660362080c8a95427bed54e0c724a"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-071",
+        "sha256": "ffc2c2ef96864e0009b25da34bf956cb402f1a71b14de5b12fda016df23613e3"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-072",
+        "sha256": "cece9c6b93dc83e3156ea6a2deb8dad7e556d282f76f0b0fa0d4371ece8ad795"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-073",
+        "sha256": "f6155af9e7a23f9fc0a583906f27cb734c809eb22193a61e024c7edc79e7fd18"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-074",
+        "sha256": "6af3834b4ef81490b1b85e29034903578676e3719cf2fba16f8e97a6573d8fd1"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-075",
+        "sha256": "6d88df08f428fa886bb1d810b8827b25d073f09bcbe97a570016ea627cc28885"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-076",
+        "sha256": "e657f53fc4d94ac5057cdaca4202c81bcd0b0cc9b28aaf8979758883eee4bbf8"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-077",
+        "sha256": "0b4da2f4c73aba0fef3b4b8b3eda798733d3737e58482843578d20bfc088e2eb"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-078",
+        "sha256": "346706a41c64ed679495e6a437e955552aed55ab18daa0da5f1cbc7b31546ae0"
+      },
+      {
+        "dataset": "quality200",
+        "id": "gsm8k-079",
+        "sha256": "bc4ba6a31fb7863efb2dbc91ecfb69ee0967b409a69c34d5e62b9db0745791ab"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-000",
+        "sha256": "8549c14dc6203be50269e3a45888d948a4c3ac059753d0b6afa1f63403a34c49"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-001",
+        "sha256": "d56669e0711f59d61c28bdfdcfe05da3dafd8be38d650558782362410e861f8a"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-002",
+        "sha256": "4ac6c639057dad16023faaff02f97644f8825261c9b9f56383dd1612550b699a"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-003",
+        "sha256": "d2d73755b4575b679b8b9749984bcc79a24cf6eb23840f411c0948c6b69d8aa8"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-004",
+        "sha256": "cdc19cdf4cfe0533d483fed6942feb4be4a243d97e1483d109dec11d536dcd57"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-005",
+        "sha256": "a82841e647baa7e7576fc7eee0be3e980c3664b5a6c398220ba5af8911393077"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-006",
+        "sha256": "f38053eac82f4ba05fb39549acbf24b123771c0c88fa5a764498c6036195fb4d"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-007",
+        "sha256": "79430d86cf42e060ad83bb80ac4d6a17cd93de1252ba2aee97384a43a100d15e"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-008",
+        "sha256": "87806881018d5002067dda5a92689412ef8908b1256b27a6cba3c4c0e38dffb8"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-009",
+        "sha256": "a43fd5d374eae7ae947c1a58c87511398e16922738f5c8b73ffdc892e28caeb1"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-010",
+        "sha256": "ec7c6a88e9406c803faa26f12bf209f1aa57b6871965966051eb2fa309bc72fb"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-011",
+        "sha256": "598fb8cb344298dbd9b3b567de720af2bdb72fd84bd62d5fab6158cc31ce7568"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-012",
+        "sha256": "25db5bd29916fd60dd4a19fd29e82227a0ad01c7d5122153b661e920f1593a84"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-013",
+        "sha256": "30d7520b3a51a320efa45d67e4c0bf7f27d5efdc188bc2376b0f9da87a4b1285"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-014",
+        "sha256": "4d13c3d95818b500179453431589d0729d4901dde02a40513147e710566ca80a"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-015",
+        "sha256": "4fe2522092dccf492d685b6b5e17699c81238ddcb457429806de50e707f5c544"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-016",
+        "sha256": "b465652d852ffdf46271cf2f49c79a8f20f422f480320875805d5406f0aa93d9"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-017",
+        "sha256": "6a47084da174b0cc823cf5e99021bfd8786479eab00885f5894cc95154c13820"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-018",
+        "sha256": "b8d80e7a17327e4b48a71b327ec05dbb8011f52a2ccdc13c01393ac599805884"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-019",
+        "sha256": "a9549c37eab2107d389974dbbd831ce8f051b6b4fb22dcf4b0c6d3839d5176a4"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-020",
+        "sha256": "374b404abd7a9b0e8b8a891d3c5cc303af0b05c9f456223317c918758bb0f7fc"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-021",
+        "sha256": "918168bd9440cdd22506f83511a322b2a0e8e5a37b215a2badfd70f67e3514ed"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-022",
+        "sha256": "8da57a52a079ea5ca899222646c561f7ea03c1e63a942787637e1d803d75fced"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-023",
+        "sha256": "24aed8a6a45d8dda765d6f872e02eb7d0790df4bc0de32db3cf447cefe2562eb"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-024",
+        "sha256": "50643e0de6c9bbb4ac8f9554a6dadf07eb8e0011c4ed026696ba152b20b3a048"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-025",
+        "sha256": "98eb5922fa798ad45fb179043cea81b92c4b714ee0f98dec9c772692aef9996e"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-026",
+        "sha256": "6eb0a516d5bd1abb08d53d4a1f1762eea7124d2ccb67e47cfbdd9bbfa05b3f41"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-027",
+        "sha256": "be8f4843abe1f3f6c3b9806fbb6bb04278e2582167f190fad8635b60fc74068e"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-028",
+        "sha256": "47f7eb6817058cfcb816609befe6a1f96f3d514aed5ce441773714d6c6ceb011"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-029",
+        "sha256": "77383269e4fdc4dea4f9e0973b967b5a81855f9666eaf535d5693f4c2de32a56"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-030",
+        "sha256": "96b4db096e8cdb980d27b5bd63b9422ddb9b954ba01db70022c4e88d37c29fa6"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-031",
+        "sha256": "47c906b54d5ca25a11e95379fde386c1d05fb63670dab49a44a4485ce20ddd03"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-032",
+        "sha256": "c9e11333c5472c55339bff78263401250008685faeff09b3dbff2ea775fa5588"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-033",
+        "sha256": "c12b171277bac8c883f4e44eda90fe80473595293a8ca8223465200c8e68a45b"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-034",
+        "sha256": "7fff86dbd5c307660cac37c8811d7270bdc9b43bd5d366153896d555bbc46e4d"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-035",
+        "sha256": "22e36078be1879313fab0d68ea08d3c2ac7d95036d81daa900da212b93e55958"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-036",
+        "sha256": "e505411c9c35d2c20db2182af57ca02c557919b99aa480560e274fe330358957"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-037",
+        "sha256": "e9ca077f3cb2c56ea297d9a1d0a65e3ed20a56af399cb6bcf4e1912cf76aa655"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-038",
+        "sha256": "f51901cd943a13e1d4c40a3f1ee09bb10ffe5077c7746c363c448ec97919d781"
+      },
+      {
+        "dataset": "quality200",
+        "id": "humaneval-039",
+        "sha256": "23e87a83ed4dfcf02c1caf2083582658ba4b1347570a746b9114e0ea29000cdd"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-000",
+        "sha256": "45bea74d3f3b07b4119d3bfc3a3a0ecfffb2e37c0c322419470c01dfe08c61c6"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-001",
+        "sha256": "819ba7b7bf81bc6a780127b3b3c1a1dd9e73b593d1379dbd5d25c48542d03272"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-002",
+        "sha256": "a778b1bb88db19f3aee8b55fc82b2b2b734ca9a74a8628faaf39fd75b5f4800d"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-003",
+        "sha256": "2440451dffe1dc9b00ff881f1cf213b0d862a08c282b3ebb0d8ab9c91de05b03"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-004",
+        "sha256": "0a55afe8d3016902a2afb3e49efa7a9f846b82e43556232d50d8ad355cfc793e"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-005",
+        "sha256": "4c284ae5540cc02a52d49dc24a4a82668bcb6cc40f539f73ecd37d508c6d05ec"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-006",
+        "sha256": "03c111b143ff4f6ffa20bc1130988e8d68ecb851a3a1941953aa58b0799d6f4c"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-007",
+        "sha256": "0dc00df854685528003a3cc67de4489327f7cb663669401941d0f8a058144222"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-008",
+        "sha256": "a73563c55b3eead3a2464256ca15fcb633d80e17c4e03c5a3fb0f5f78c057bff"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-009",
+        "sha256": "007523ce64b4fbb4100ef4f22d3e21b19839fd7e38923d5fd637367a1eabcb56"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-010",
+        "sha256": "66b35bcba1254f98843d562be5fedbb77e37a97b7933580192f246502cab4b50"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-011",
+        "sha256": "977181509ec86088d0bcb24198c8ee663b375b4e4815a7502baa1ffe59c84eea"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-012",
+        "sha256": "b14392ab0e49860f12a6736fbb6aff04e4f5cef7217aa99a07604674838e1f16"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-013",
+        "sha256": "043f965347913a935ac9a5cff741219d53c89f4e66b3ab6b7894ba886be2cc5d"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-014",
+        "sha256": "67d13c8385996fe34b1ce028332e65e53613d1cf2eaa16a2793a5e29363590a8"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-015",
+        "sha256": "715669b4369d20f0bb5e09dc1832201bc87df9571117015b290a828106813b2c"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-016",
+        "sha256": "b65d867c93407cab0b99a35697758f5f46ad6fba1fc7de03d388a5f95c2fb885"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-017",
+        "sha256": "37159c5a965f295f127a83cfe6cf58064b1dacdcbf9631e142829f20341c4415"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-018",
+        "sha256": "8df832ec22970f0de062392423231fabcc0e229d323d290cfb70a01adab2409b"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-019",
+        "sha256": "5e3ecb1ea8b89faf2fec90a5c4bec7b0e3e9a99d5820a34e4d12bb86874d217b"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-020",
+        "sha256": "c6483a79415393343d1cc51c718f31068394fd0562bd5e6eab20b5eb26382a74"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-021",
+        "sha256": "45213cfd5bd497ae058b428b975743f7a95eb7e794d96c19926f634321f6edf7"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-022",
+        "sha256": "4a0f70421d505b33a55b85733b18ef3ea470b4dfae95a6f64e3a9b62991f9ac9"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-023",
+        "sha256": "448c86ea3b2ee95bda4fe063c4c98cc41f4db5d944f3c379a0b9fe5d4e37a9a3"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-024",
+        "sha256": "7c8ed807ae20e96c15d9dfce1a4dee2166d8c9d4ec3f0d68c9cd6839f241aea9"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-025",
+        "sha256": "0b976c90bd53eed1bba91bed6b0748bb997bebcbd96cb3469143737c7ce5ce6f"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-026",
+        "sha256": "ebebf5e7239f035fc749fd6f7585cd9c2f7faeea7e2dcbe4570299be06cbe9da"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-027",
+        "sha256": "0e11af71297fe5bb671887e18f36033ef76100bd1bd0a55650d5453b27ae373f"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-028",
+        "sha256": "54faa7eef341034f013f5fd7d7800fa5b4a45a3a7ba5edfb83e3f68956d886ec"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-029",
+        "sha256": "73a6909867119bab3872a35e98ae488bc0ac42703d8d2b415085e51f400c8005"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-030",
+        "sha256": "b2f8f10da403593a24a821b100e7656fe90ebd479db71bd71534708ccf0ff551"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-031",
+        "sha256": "5a687a2dcce326bc6e09d831e9074620bdf2bf4a3e8c9b479310547291e445ba"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-032",
+        "sha256": "3e07d4bf66e801180b32e24aa0d308a78c64a518f293aa385349400b0f37095d"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-033",
+        "sha256": "3ccf696c37a76a535e1ee18a4f7626668f34f97e17e160ac48309f93c744e2f9"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-034",
+        "sha256": "4fa4e91632efd741c4546a7982b7f3d1ff3cda16ef7166d82a745bb5b4d99cad"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-035",
+        "sha256": "2fbdb38989536ae04e367c9231767ad3656ed3445e917da93960685971981788"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-036",
+        "sha256": "d89146b220ad82da33dd63109e83934e3b3a787328c6aec230fc04b90ca83b07"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-037",
+        "sha256": "bbac8515f6a9a5ca6c83822febb8f744ea64e0f3d1a6653f8d736ec0e5d56e4c"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-038",
+        "sha256": "1606c2a8758eccca43792bc14102e4b0ae302be8cc0f11a1d295f26eba2d6dc9"
+      },
+      {
+        "dataset": "quality200",
+        "id": "ifeval-039",
+        "sha256": "88d0a897bd7ffa708593829c7635ae3c434a090785475fc388cb1f759cda1d65"
+      },
+      {
+        "dataset": "quality200",
+        "id": "hard-00",
+        "sha256": "ef162993d5a49853781d6dca872c1340abfb272a7baa09bfb0dbf2bd9b619868"
+      },
+      {
+        "dataset": "quality200",
+        "id": "hard-01",
+        "sha256": "712c2847b2d9d48944e48effa7eb101d25d8b3866b9e27fddd0f8f55ad9e2264"
+      },
+      {
+        "dataset": "quality200",
+        "id": "hard-02",
+        "sha256": "31ac1b9aa5a7447b7984581d03d1c27636365d03dad369ecac7429ea4600fb95"
+      },
+      {
+        "dataset": "quality200",
+        "id": "hard-03",
+        "sha256": "f73ea9a801b6e816a510f8566831223a0c1ff8614eab2fe50447ab6a7cb5b35d"
+      },
+      {
+        "dataset": "quality200",
+        "id": "hard-04",
+        "sha256": "d853e635814a2d5f272df4f593cde5042e9f31584d1f74eba30d5d706593ea57"
+      },
+      {
+        "dataset": "quality200",
+        "id": "hard-05",
+        "sha256": "67c7e5b65e54700049f8ea4d1706f68a6016abc7791f53204d1bf7a3673ef800"
+      },
+      {
+        "dataset": "quality200",
+        "id": "hard-06",
+        "sha256": "9c5ccf007809750444625040a7c109c7da065ec8507f6e915c330237ca6deb4c"
+      },
+      {
+        "dataset": "quality200",
+        "id": "hard-07",
+        "sha256": "9ba22fb7b9eab5821fecec28279ac6792e81dce95a82d7d4a5bc7af49aac2fc6"
+      },
+      {
+        "dataset": "quality200",
+        "id": "hard-08",
+        "sha256": "63268130f223007b45e920edc82f3c1d5377db20dda57ed45ed0ebee13c5d235"
+      },
+      {
+        "dataset": "quality200",
+        "id": "hard-09",
+        "sha256": "369be9820dd94ee9fdab5e3278ca38174ff5c012634cb64849e958f514869b10"
+      },
+      {
+        "dataset": "quality200",
+        "id": "hard-10",
+        "sha256": "311ecf89842b7d449ab8c52c966ead81a217738a03d0a3b95f25832317382f4b"
+      },
+      {
+        "dataset": "quality200",
+        "id": "hard-11",
+        "sha256": "17794a1176746775abb5aab957aa3d20ec18c1ec8a590f8f6548c3ade68801ae"
+      },
+      {
+        "dataset": "quality200",
+        "id": "hard-12",
+        "sha256": "bc0a8371077b9847bfec93747d8672fb79a05b37a6ce115f57aae23fef221926"
+      },
+      {
+        "dataset": "quality200",
+        "id": "hard-13",
+        "sha256": "376bf2ea17a59f9481db0ced0a10a2fffe5668d9cfc7e07df5558744d357cc84"
+      },
+      {
+        "dataset": "quality200",
+        "id": "hard-14",
+        "sha256": "42ad3dc183acf486de33211596a2f748a8d2e9eb1f480d935dff684aa85bf515"
+      },
+      {
+        "dataset": "quality200",
+        "id": "hard-15",
+        "sha256": "d599b76977c023e1a2773862e2ea28676460b1b2817cbe2ce9ec094cb3d0eb15"
+      },
+      {
+        "dataset": "quality200",
+        "id": "hard-16",
+        "sha256": "da045ea573dd4443b1145f567a5fa0e07a93b9451019dbb8cecad89272332a8b"
+      },
+      {
+        "dataset": "quality200",
+        "id": "hard-17",
+        "sha256": "d51631891a4b1209120ca09951c4031a2fb66644404e89411019ea0a84e53310"
+      },
+      {
+        "dataset": "quality200",
+        "id": "hard-18",
+        "sha256": "1971913cb52dace0029131cf293e57d8b006b27835e768f2ee2e102320fe88a2"
+      },
+      {
+        "dataset": "quality200",
+        "id": "hard-19",
+        "sha256": "9821203f9249f41d7bb8063e4ee9a0955f927710f025209552799c86c8985788"
+      },
+      {
+        "dataset": "quality200",
+        "id": "agentic-00",
+        "sha256": "aa936f5337c2990a644fd4d03f67cdb403656a4963d2029445c5c44b424e8635"
+      },
+      {
+        "dataset": "quality200",
+        "id": "agentic-01",
+        "sha256": "1cbd7d12f364ba9c6962c3547df7af8dc16d33d4400705838a72d8432c1a4b8b"
+      },
+      {
+        "dataset": "quality200",
+        "id": "agentic-02",
+        "sha256": "3523c3f62887b778c3b1262170d71e17d2e6282acdd8bf2136cf3ab17946c8ab"
+      },
+      {
+        "dataset": "quality200",
+        "id": "agentic-03",
+        "sha256": "7b963c76a87982971285dce34d7a96ec08ab923239039388b692e662b80c07e3"
+      },
+      {
+        "dataset": "quality200",
+        "id": "agentic-04",
+        "sha256": "f84ebae9d08f747d2080e7623d2ab34fd71bff6071a46c2109f3d116d3a5a45f"
+      },
+      {
+        "dataset": "quality200",
+        "id": "agentic-05",
+        "sha256": "7fa8df45bd0d81c9a804fc96bbd4abeb9f0babb96d4af1e75ef7f48f635c41b8"
+      },
+      {
+        "dataset": "quality200",
+        "id": "agentic-06",
+        "sha256": "1adcd192e63dfccace28b9f71e366ba36cf12afc96612d33f9217afb80f4c058"
+      },
+      {
+        "dataset": "quality200",
+        "id": "agentic-07",
+        "sha256": "05e630d77ece5e014ae0ffdb167533afaf8bab0830fceb2422cce77469345c9d"
+      },
+      {
+        "dataset": "quality200",
+        "id": "agentic-08",
+        "sha256": "8c54a61f12cf38dc712a72e19805d96b1369b4432b7a7f7bad7a4d6d67b44247"
+      },
+      {
+        "dataset": "quality200",
+        "id": "agentic-09",
+        "sha256": "92496ece29ada90e591b576287c0daf1edc81a5de169a6887722997488590c1c"
+      },
+      {
+        "dataset": "quality200",
+        "id": "agentic-10",
+        "sha256": "29c32f2ee409d9d79ed1336fc7f6b773fcb64e7a982cf7cbc04c324af08bf644"
+      },
+      {
+        "dataset": "quality200",
+        "id": "agentic-11",
+        "sha256": "8286fd069757f99dd0492a0f67b197e6518bc2deab9634e29c9e2360b74c1d21"
+      },
+      {
+        "dataset": "quality200",
+        "id": "agentic-12",
+        "sha256": "257547d646509e3ce40fd71d59ee6cca1d45fdaf9809fd3df00d9d83dcdf511b"
+      },
+      {
+        "dataset": "quality200",
+        "id": "agentic-13",
+        "sha256": "9fa48ddc0ff689fb6623c097e6e351c6785c318b4688d73c0f4f091e240967e7"
+      },
+      {
+        "dataset": "quality200",
+        "id": "agentic-14",
+        "sha256": "6b01b30c6cc1e44c3e729e499ceb12ca2841a6d0906f64abdf8610bad8c555b9"
+      },
+      {
+        "dataset": "quality200",
+        "id": "agentic-15",
+        "sha256": "3d63b18eaef75b3932f8955cb87b212dadadcbe964a57903450719ae25b12866"
+      },
+      {
+        "dataset": "quality200",
+        "id": "agentic-16",
+        "sha256": "3d67dea743a8ad7a4f0adb6ee24559ebc9f257aff4139bd90b9a1bd7b8a53a7a"
+      },
+      {
+        "dataset": "quality200",
+        "id": "agentic-17",
+        "sha256": "1581bae0819a0ae33bf392df10ca41d1b0824809e15401e85ec38e3f09862320"
+      },
+      {
+        "dataset": "quality200",
+        "id": "agentic-18",
+        "sha256": "7446d1bd8c5d0859c07ee7917876d09266eb42704b98de6df75bfcc7cab89762"
+      },
+      {
+        "dataset": "quality200",
+        "id": "agentic-19",
+        "sha256": "47d3b8258f2901f951cae2a0fc6c741d19f831864866af86058705b658dcb6d4"
+      }
+    ]
+  },
+  "notes": [
+    "validation is a seed (S1-S3): extend it from the training corpora before the H100 run, then rebuild this manifest so the exclusion list stays exact",
+    "the 30 qualitative prompts are also measured in the acceptance sweep (gate G2 covers S2/S3 + the demo prompts)"
+  ]
+}
