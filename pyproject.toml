@@ -1,0 +1,13 @@
+[project]
+name = "qwenbench"
+version = "0.1.0"
+description = "Measurement harness for Qwen3.8-27B on DGX Spark (quantization, MTP, speculative decoding)"
+requires-python = ">=3.12"
+dependencies = ["httpx>=0.27"]
+
+# The package is not installed: it is imported from the repository root
+# (`python -m scripts.probe` or via tests/conftest.py). No build-system needed.
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
