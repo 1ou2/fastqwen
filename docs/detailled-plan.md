@@ -1,4 +1,4 @@
-# Plan for tomorrow — Tuesday 19/10
+# Plan for H100 run
 
 **Objective of the day:** leave with a launched (or finished) B1 generation run plus its manifest, and have the SFT harness ready to use the output the moment it lands. Nothing else.
 

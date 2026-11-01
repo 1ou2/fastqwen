@@ -60,7 +60,7 @@ from qwenbench.eval_sets import prompt_sha256  # noqa: E402
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 DEFAULT_EXCLUSION_MANIFEST = ROOT / "benchmarks" / "validation" / "manifest.json"
-DEFAULT_OUT_DIR = ROOT / "benchmarks" / "datasets"
+DEFAULT_OUT_DIR = ROOT / "data" / "runs"
 TEMPLATE_COPY = ROOT / "cache" / "tokenizers" / "target" / "tokenizer_config.json"
 
 #: The frozen tokenizer files live in `cache/` (gitignored), so a fresh clone —
@@ -166,7 +166,11 @@ def _print_plan(
     print(f"  slices       : {slice_counts(rows)}")
     print(f"  exclusions   : {excluded_count} frozen hashes enforced")
     print(f"  shard        : {args.shard_index}/{args.shard_count}")
-    print(f"  output       : {output.relative_to(ROOT)}")
+    try:
+        output_display = output.relative_to(ROOT)
+    except ValueError:
+        output_display = output
+    print(f"  output       : {output_display}")
     print(f"  teacher      : {args.model} @ {args.base_url}")
     print(f"  pinned       : revision={revision or 'unknown'} "
           f"image={args.image_digest or 'UNPINNED'}")

@@ -66,7 +66,7 @@ python -m scripts.generate_dataset \
     --prompts data/prompts/shards/s1.jsonl --limit 500 \
     --base-url http://127.0.0.1:8000 --concurrency 128 \
     --image-digest sha256:... --teacher-revision <sha> \
-    --run-id smoke --out-dir /data/runs
+    --run-id smoke --out-dir data/runs
 ```
 
 Then verify, before the bulk run:
@@ -94,10 +94,9 @@ an S4 reasoning slice. `reasoning_effort=low` is frozen.
 
 ## 8. What to bring back
 
-The run directory (`/data/runs/<run-id>/`): `shard-*.jsonl`, `manifest.json`,
+The run directory (`data/runs/<run-id>/`): `shard-*.jsonl`, `manifest.json`,
 `*.errors.jsonl`. Archive it with its manifest; the dataset is content, the
-manifest is its provenance. Never commit the output — `benchmarks/datasets/`
-is ignored.
+manifest is its provenance. Never commit the output — `data/runs/` is ignored.
 
 Do not run SFT, acceptance or quantization here unless the generation finished
 early; those belong to the next session.

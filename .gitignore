@@ -224,5 +224,6 @@ checkpoints/
 
 # Generated artefacts: reproducible, large, never committed
 benchmarks/datasets/
+data/runs/
 benchmarks/samples/
 benchmarks/ref_logits/
