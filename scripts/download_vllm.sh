@@ -14,6 +14,7 @@ docker run --rm --gpus '"device=0,1"' --ipc=host \
   --port 8000
 
 # for uninstalling torchcodec and running the server
+# with v0.32.0-cu129 there is an error related to torchcodec, so we uninstall it before running the server
 docker run --rm --gpus '"device=0,1"' --ipc=host \
   -v "$HOME/.cache/huggingface:/root/.cache/huggingface" \
   -p 8000:8000 \

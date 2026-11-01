@@ -9,7 +9,7 @@ the only things fetched or produced here that do not come from the repository.
 ```bash
 git clone <repo> fastqwen && cd fastqwen
 python3 --version                 # >= 3.10; 3.12 is what the Spark runs
-uv pip install httpx pytest       # httpx is already in the vLLM image
+uv pip install -r requirements.txt
 ```
 
 No package install is needed: the code is imported from the repository root.
@@ -49,10 +49,31 @@ Freeze the power/clock settings before measuring anything, and record the
 **image digest** — it is a required argument below.
 
 ## 5. Validate before spending GPU time
+Download the ultrachat dataset :
+
+```bash
+mkdir -p data/corpora
+hf download HuggingFaceH4/ultrachat_200k \
+  --type dataset \
+  --local-dir data/corpora/ultrachat_200k
+```
+
+Sample 500 English S1 prompts from the downloaded UltraChat training split.
+The sampler uses the dataset's `prompt` column and filters evaluation prompts
+from the frozen exclusion manifest:
+
+```bash
+python -m scripts.sample_corpora \
+    --parquet-glob 'data/corpora/ultrachat_200k/data/train_sft-*.parquet' \
+    --count 500 --slice S1 \
+    --output data/prompts/shards/s1-ultrachat-500.jsonl
+```
+
+Then validate the shard before spending GPU time:
 
 ```bash
 python -m scripts.generate_dataset \
-    --prompts data/prompts/shards/s1.jsonl \
+    --prompts data/prompts/shards/s1-ultrachat-500.jsonl \
     --dry-run
 ```
 
@@ -63,7 +84,7 @@ revision, slice counts. It exits non-zero if any prompt is contaminated.
 
 ```bash
 python -m scripts.generate_dataset \
-    --prompts data/prompts/shards/s1.jsonl --limit 500 \
+    --prompts data/prompts/shards/s1-ultrachat-500.jsonl --limit 500 \
     --base-url http://127.0.0.1:8000 --concurrency 128 \
     --image-digest sha256:... --teacher-revision <sha> \
     --run-id smoke --out-dir data/runs
