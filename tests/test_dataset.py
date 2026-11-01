@@ -12,6 +12,7 @@ import json
 import pytest
 
 from qwenbench import dataset as ds
+from scripts.generate_dataset import _scan_totals
 
 
 def _row(row_id: str, prompt: str, slice_name: str = "S1") -> dict:
@@ -153,6 +154,20 @@ def test_token_totals_count_empty_outputs():
     assert totals["completion_tokens"] == 14
     assert totals["reasoning_tokens"] == 10
     assert totals["empty"] == 1
+
+
+def test_scan_totals_count_length_finishes(tmp_path):
+    output = tmp_path / "shard.jsonl"
+    output.write_text(
+        json.dumps({"finish_reason": "length", "content": "clipped", "usage": {}}) + "\n"
+        + json.dumps({"finish_reason": "stop", "content": "complete", "usage": {}}) + "\n",
+        encoding="utf-8",
+    )
+
+    totals = _scan_totals(output)
+
+    assert totals["records"] == 2
+    assert totals["finish_reason_length"] == 1
 
 
 def test_slice_counts_are_sorted():

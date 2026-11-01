@@ -59,8 +59,10 @@ hf download HuggingFaceH4/ultrachat_200k \
 ```
 
 Sample 500 English S1 prompts from the downloaded UltraChat training split.
-The sampler uses the dataset's `prompt` column and filters evaluation prompts
-from the frozen exclusion manifest:
+The sampler uses the dataset's `prompt` column, filters evaluation prompts,
+duplicates, empty rows, explicit requests for 5,000+ words, obvious
+software-build tasks, and programming-language code tasks (those belong in
+S2). It prints rejection counts so the filtering is auditable:
 
 ```bash
 python -m scripts.sample_corpora \

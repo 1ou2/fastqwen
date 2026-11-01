@@ -8,12 +8,44 @@ import glob
 import json
 import pathlib
 import random
+import re
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from qwenbench.eval_sets import prompt_sha256  # noqa: E402
+
+_EXPLICIT_WORD_COUNT_RE = re.compile(r"\b(\d[\d,]*)\s*[- ]?\s*words?\b", re.IGNORECASE)
+_S1_SOFTWARE_TASK_RE = re.compile(
+    r"\b(?:build|create|develop|design|implement|program|write)\b"
+    r"[\s\S]{0,180}\b(?:application|apps?|websites?|sites?|webpages?|platforms?|"
+    r"dashboards?|chrome extensions?|software|gui|cms|bots?|games?)\b",
+    re.IGNORECASE,
+)
+_S1_CODE_TASK_RE = re.compile(
+    r"\b(?:build|create|develop|design|implement|program|write)\b"
+    r"[\s\S]{0,180}\b(?:program|code|script|function|algorithm|programming language)\b",
+    re.IGNORECASE,
+)
+_PROGRAMMING_LANGUAGE_RE = re.compile(
+    r"\b(?:python|javascript|typescript|java|ruby|php|swift|kotlin|rust|golang|go)\b"
+    r"|c\+\+|c#",
+    re.IGNORECASE,
+)
+
+
+def _s1_filter_reason(prompt: str) -> str | None:
+    """Reject obvious S2 software-build tasks and extreme-length requests."""
+    for match in _EXPLICIT_WORD_COUNT_RE.finditer(prompt):
+        requested_words = int(match.group(1).replace(",", ""))
+        if requested_words >= 5_000:
+            return "s1_extreme_output"
+    if _S1_SOFTWARE_TASK_RE.search(prompt):
+        return "s1_software_task"
+    if _S1_CODE_TASK_RE.search(prompt) and _PROGRAMMING_LANGUAGE_RE.search(prompt):
+        return "s1_software_task"
+    return None
 
 
 def _load_exclusions(path: pathlib.Path) -> set[str]:
@@ -46,7 +78,15 @@ def _sample(
     rng = random.Random(seed)
     selected: list[dict[str, str]] = []
     seen: set[str] = set()
-    stats = {"scanned": 0, "empty": 0, "excluded": 0, "duplicate": 0, "eligible": 0}
+    stats = {
+        "scanned": 0,
+        "empty": 0,
+        "excluded": 0,
+        "duplicate": 0,
+        "s1_software_task": 0,
+        "s1_extreme_output": 0,
+        "eligible": 0,
+    }
 
     for source_row in rows:
         stats["scanned"] += 1
@@ -63,6 +103,12 @@ def _sample(
         if digest in seen:
             stats["duplicate"] += 1
             continue
+
+        if slice_name == "S1":
+            rejection = _s1_filter_reason(prompt)
+            if rejection is not None:
+                stats[rejection] += 1
+                continue
 
         seen.add(digest)
         stats["eligible"] += 1

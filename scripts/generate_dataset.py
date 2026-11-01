@@ -132,7 +132,14 @@ def _load_exclusions(path: pathlib.Path) -> set[str]:
 
 def _scan_totals(path: pathlib.Path) -> dict[str, int]:
     """Stream the output back for the manifest; never keeps it in memory."""
-    totals = {"records": 0, "prompt_tokens": 0, "completion_tokens": 0, "reasoning_tokens": 0, "empty": 0}
+    totals = {
+        "records": 0,
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "reasoning_tokens": 0,
+        "empty": 0,
+        "finish_reason_length": 0,
+    }
     if not path.is_file():
         return totals
     with path.open(encoding="utf-8") as handle:
@@ -147,6 +154,8 @@ def _scan_totals(path: pathlib.Path) -> dict[str, int]:
             usage = record.get("usage") or {}
             for key in ("prompt_tokens", "completion_tokens", "reasoning_tokens"):
                 totals[key] += int(usage.get(key) or 0)
+            if record.get("finish_reason") == "length":
+                totals["finish_reason_length"] += 1
             if not (record.get("content") or "").strip():
                 totals["empty"] += 1
     return totals
@@ -414,6 +423,7 @@ def main(argv: list[str] | None = None) -> int:
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
 
     print(f"\n  records  : {totals['records']} ({totals['empty']} empty answers)")
+    print(f"  clipped  : {totals['finish_reason_length']} hit max_tokens")
     print(f"  tokens   : {totals['completion_tokens']:,} completion, "
           f"{totals['reasoning_tokens']:,} reasoning")
     print(f"  failures : {len(errors)}")
