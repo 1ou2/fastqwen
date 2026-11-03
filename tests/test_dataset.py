@@ -12,6 +12,7 @@ import json
 import pytest
 
 from qwenbench import dataset as ds
+from scripts import generate_dataset
 from scripts.generate_dataset import _scan_totals
 
 
@@ -174,3 +175,46 @@ def test_slice_counts_are_sorted():
     rows = [_row("a", "1", "S2"), _row("b", "2", "S1"), _row("c", "3", "S2")]
 
     assert ds.slice_counts(rows) == {"S1": 1, "S2": 2}
+
+
+@pytest.mark.parametrize("path_kind", ["relative", "external", "inside-root"])
+def test_generation_prints_manifest_without_crashing(tmp_path, monkeypatch, capsys, path_kind):
+    root = tmp_path / "repo"
+    root.mkdir()
+    monkeypatch.chdir(root)
+    monkeypatch.setattr(generate_dataset, "ROOT", root)
+    monkeypatch.setattr(generate_dataset, "_load_exclusions", lambda path: set())
+    monkeypatch.setattr(generate_dataset, "_template_sha256", lambda: "template-hash")
+    monkeypatch.setattr(generate_dataset, "_git_commit", lambda: "test-commit")
+    prompts = root / "prompts.jsonl"
+    prompts.write_text(json.dumps(_row("a", "question")) + "\n", encoding="utf-8")
+    exclusions = root / "exclusions.json"
+    exclusions.write_text("{}\n", encoding="utf-8")
+    out_dir = {
+        "relative": root.relative_to(root) / "runs",
+        "external": tmp_path / "external-runs",
+        "inside-root": root / "runs",
+    }[path_kind]
+
+    async def fake_run(args, rows, spec, output, teacher, template_sha256):
+        output.parent.mkdir(parents=True, exist_ok=True)
+        record = ds.build_record(
+            rows[0], _payload(), teacher=teacher, spec={},
+            template_sha256=template_sha256, finished_at="now",
+        )
+        output.write_text(json.dumps(record) + "\n", encoding="utf-8")
+        return []
+
+    monkeypatch.setattr(generate_dataset, "_run", fake_run)
+
+    result = generate_dataset.main([
+        "--prompts", str(prompts), "--out-dir", str(out_dir),
+        "--run-id", "regression", "--exclusion-manifest", str(exclusions),
+        "--teacher-revision", "test-revision", "--image-digest", "test-image",
+    ])
+
+    manifest_path = out_dir / "regression" / "manifest.json"
+    expected_path = manifest_path.relative_to(root) if manifest_path.is_relative_to(root) else manifest_path
+    assert result == 0
+    assert json.loads(manifest_path.read_text(encoding="utf-8"))["totals"]["records"] == 1
+    assert f"  manifest : {expected_path}" in capsys.readouterr().out

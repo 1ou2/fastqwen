@@ -427,7 +427,8 @@ def main(argv: list[str] | None = None) -> int:
     print(f"  tokens   : {totals['completion_tokens']:,} completion, "
           f"{totals['reasoning_tokens']:,} reasoning")
     print(f"  failures : {len(errors)}")
-    print(f"  manifest : {manifest_path.relative_to(ROOT)}")
+    manifest_display = manifest_path.relative_to(ROOT) if manifest_path.is_relative_to(ROOT) else manifest_path
+    print(f"  manifest : {manifest_display}")
 
     if errors:
         print("\n⚠️  some requests failed after retries — rerun the same command to resume")
