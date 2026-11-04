@@ -1,5 +1,18 @@
 # Project recap and overnight decision
 
+## SFT update: November 4 evening
+
+A single-GPU SFT harness is now implemented. Real BF16 smokes at 512 and
+2,048-token caps saved optimizer/scheduler/RNG checkpoints and resumed from step
+2 to step 4 with strict weight restoration. The main `.venv` is used. Teacher
+replica 1 was stopped with approval; replica 0 remains loaded. A detached,
+2,000-step mixed-source pilot was launched with approval at 21:58 CET in tmux
+`sft-pilot-20261104`, on GPU 2. Launch verification found the session alive and
+the manifest at CPU data preparation; pilot GPU steps/checkpoints had not yet
+been observed. All 178 tests passed. See [commands, smoke results, and remaining
+limits](sft-night-20261104.md). Full training, optimized kernels, distributed SFT,
+and offline acceptance are not yet validated.
+
 ## QA update: November 4
 
 Step 1 is complete. The CPU-only exporter audited all 201,694 bulk records and

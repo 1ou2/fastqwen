@@ -146,6 +146,6 @@ and exclusions. Result: zero changed raw records, zero train/validation prompt
 overlap, and zero accepted protected-prompt overlap.
 
 This audit is evidence of integrity and policy compliance, not a scored quality
-or speculative-decoding acceptance result. The next implementation step is the
-SFT harness and a small checkpoint/resume smoke, with mixture and serialization
-decisions made explicitly before a long training run.
+or speculative-decoding acceptance result. The SFT harness and small save/resume
+smokes were subsequently implemented; see [the evening training update](sft-night-20261104.md).
+Longer training, mixture selection, and acceptance evaluation remain separate gates.
