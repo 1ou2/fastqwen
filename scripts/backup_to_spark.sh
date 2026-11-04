@@ -6,7 +6,9 @@ usage() {
     'Usage: bash backup_to_spark.sh [DESTINATION [SSH_HOST [REMOTE_ROOT]]]' \
     'Run on the Spark, not on the temporary GPU server.' \
     'Defaults: ./fastqwen-backup gpu-server /opt/home/gabriel/dev/fastqwen' \
-    'Copies data/runs, benchmarks, data/prompts, docs, and root Markdown files.' \
+    'Copies all data/runs (including French/code), benchmarks, prompts, and docs.' \
+    'Also copies checkpoints/, data/checkpoints/, and data/calib/ when present.' \
+    'Excludes Git-managed code, downloaded corpora, environments, and model caches.' \
     'Requires rsync on both machines and SSH access to SSH_HOST.' \
     'Reruns resume transfers; local files are never deleted.'
 }
@@ -42,6 +44,9 @@ filters=(
   --include='/data/'
   --include='/data/runs/***'
   --include='/data/prompts/***'
+  --include='/data/checkpoints/***'
+  --include='/data/calib/***'
+  --include='/checkpoints/***'
   --include='/benchmarks/***'
   --include='/docs/***'
   --include='/*.md'

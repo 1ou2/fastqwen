@@ -9,15 +9,22 @@ The backup preserves the repository-relative directory structure and includes:
 
 - `data/runs/`: all runs, not just the overnight wave; candidates, classification
   decisions and exports, generated answers, manifests, logs, smoke outputs, and
-  any other files saved within runs.
+  any other files saved within runs. This automatically includes the completed
+  English run, French/code preparation, smoke tests, the November 3-4 bulk run,
+  and its sibling launcher log; no per-run script update is needed.
 - `benchmarks/`: benchmark runs and their prompts, quality sets, validation
   inputs, exclusion manifest, and tokenizer contract.
 - `data/prompts/`: authored prompts, tools, and any local prompt shards.
+- `checkpoints/` and `data/checkpoints/`, when present: trained weights, tokenizer
+  files, optimizer/scheduler state, and other checkpoint contents required to
+  resume training. Checkpoints saved under `data/runs/` are also included.
+- `data/calib/`, when present: calibration inputs and their manifests.
 - `docs/`: all documentation, including untracked notes and the night analysis.
 - Root-level `*.md`: the README and project plan.
 
 It does not copy Git history, application code, Python environments, dependency
-caches, Docker images, model weights, or `data/corpora/`. The downloaded corpora
+caches, Docker images, downloaded base-model weights, or `data/corpora/`. Trained
+weights in the checkpoint directories above are included. The downloaded corpora
 can be fetched again; the sampled prompts used for runs are preserved. Files
 outside this scope, including container logs not saved into a run directory,
 are not backed up. Save any additional experiment artifacts into a run directory
@@ -35,8 +42,10 @@ scp gpu-server:/opt/home/gabriel/dev/fastqwen/scripts/backup_to_spark.sh .
 bash backup_to_spark.sh "$HOME/backups/fastqwen"
 ```
 
-The selected data occupied approximately 1.5 GB on November 3, 2026. Ensure enough
-free space for later runs. To use another host alias or remote repository path:
+The completed French/code wave is included automatically when you rerun the
+command against the same local destination. Ensure enough free space for the new
+outputs and future training checkpoints, which can be much larger than JSONL
+datasets. To use another host alias or remote repository path:
 
 ```bash
 bash backup_to_spark.sh "$HOME/backups/fastqwen" gpu-server /opt/home/gabriel/dev/fastqwen
@@ -74,4 +83,5 @@ Install the appropriate Spark dependencies and download model revisions again;
 the H100 Docker setup is documented, but not necessarily suitable for Spark.
 
 The overnight analysis is in
-[night-run-20261101-analysis.md](night-run-20261101-analysis.md).
+[night-run-20261101-analysis.md](night-run-20261101-analysis.md). The French/code
+bulk layout is documented in [french-code-step2-bulk.md](french-code-step2-bulk.md).

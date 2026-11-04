@@ -3,6 +3,11 @@
 Run directory: `data/runs/s1-night-20261101-222544`.
 Analysis date: November 3, 2026.
 
+The subsequent French/code wave is documented separately in
+[the November 3-4 night analysis](night-run-20261103-analysis.md). Together, the
+two bulk waves produced 201,694 raw answers and 169,245,231 completion tokens,
+excluding smoke outputs; QA-cleaned training exports are still pending.
+
 ## Summary
 
 Generation completed successfully on two TP=2 teacher replicas using all four

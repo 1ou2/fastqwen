@@ -1,5 +1,42 @@
 # Project recap and overnight decision
 
+## QA update: November 4
+
+Step 1 is complete. The CPU-only exporter audited all 201,694 bulk records and
+produced 195,991 training rows (159.59M completion tokens), 4,181 validation rows,
+1,194 quarantined rows, and 328 rejected capped answers. EN, FR, and code source
+groups remain explicit, with no automatic mixture balancing. Raw records and
+the frozen/new evaluation hold-outs are unchanged; independent checks found no
+accepted hold-out contamination or train/validation overlap. Automated QA is not
+a correctness or licensing clearance. See [policy, results, and reproducible
+command](training-data-qa.md). No SFT was launched or teacher container changed.
+Next: implement the SFT harness and validate serialization/checkpoint/resume on
+a small smoke before committing to a training run.
+
+## Morning update: November 4
+
+The French/code run **completed successfully at 01:14:43 CET** with worker exit
+codes `0 0`. It produced 91,197 answers and 75,017,801 completion tokens in
+3h 5m 35s, averaging 6,737 completion tokens/s. French contributed 41,197 answers
+and 17.53M tokens; code contributed 50,000 answers and 57.49M tokens. No request
+failures or empty answers were reported. There were 8 capped French answers and
+287 capped code answers. The later QA update above supersedes this morning
+snapshot's pending-export status; human review remains pending.
+
+Morning checks verified output hashes, sizes, counts, complete prompt coverage,
+unchanged prompts, no duplicate IDs, and valid newline-terminated JSONL. At 08:14,
+the teachers remained loaded, all GPUs reported idle, and the tmux job had exited
+normally. No SFT was queued or run. At that point the QA exporter and SFT harness
+were next; the exporter has since completed as described above.
+The backup script now also includes checkpoint and calibration directories.
+
+See [the full November 3-4 analysis](night-run-20261103-analysis.md) for timings,
+token totals, replica results, estimate error, provenance, and conclusions.
+The sections below preserve the November 3 end-of-day snapshot and its estimates;
+their running-state descriptions are historical, not the current job status.
+
+## November 3 snapshot
+
 Status: November 3, 2026, end-of-day handoff. French/code bulk generation is
 running on all four H100s. Interactive work is paused for the night; generation
 will continue unattended. This is a status snapshot, not a change to the reference
