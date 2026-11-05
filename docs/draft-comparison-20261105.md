@@ -6,6 +6,83 @@ Qwen3.5-2B with the completed 2,000-update pilot. The live Qwen3.8-27B teacher
 stays loaded on GPUs 0-1. No teacher container, training checkpoint, source
 dataset, or backup process is stopped or rewritten by this comparison.
 
+## Completed results and conclusion
+
+The full comparison completed on November 5 at 22:04:25 CET. Both student arms
+completed, both worker exit codes were zero, and the launcher exited zero.
+The authoritative results are in the
+[completed summary](../data/runs/draft-compare-20261105/summary.json).
+
+**Conclusion: the 2,000-update pilot is a better draft on this evaluation.**
+Acceptance improved across English, French, and code, including fresh prompts
+excluded from QA training and the monitored validation subset. Retain the pilot
+checkpoint as the trained-draft candidate for native integration. This is evidence
+of improved short-horizon teacher alignment, not a measured serving speedup or a
+general answer-quality improvement.
+
+### Pooled acceptance
+
+The comparison used 300 prompts, 100 per source, with up to 128 teacher tokens
+per prompt. Gains and intervals below are in percentage points, not relative
+percentages. Intervals use 2,000 paired, source-stratified prompt bootstrap
+replicates.
+
+| Gamma | Raw acceptance | Trained acceptance | Gain (pp) | 95% interval (pp) |
+| --- | ---: | ---: | ---: | ---: |
+| 1 | 73.32% | 77.18% | +3.86 | +3.34 to +4.43 |
+| 2 | 63.92% | 67.99% | +4.07 | +3.51 to +4.60 |
+| 4 | 49.15% | 54.26% | +5.11 | +4.46 to +5.73 |
+| 8 | 32.53% | 37.12% | +4.59 | +3.98 to +5.16 |
+
+All 12 reported per-source/gamma acceptance-difference intervals are also above
+zero. These are individual intervals, not a simultaneous multiple-comparison
+guarantee. At gamma 4, the gains are +3.69 points for English, +5.14 for French,
+and +6.77 for code. Code benefits most at every tested gamma.
+
+Acceptance decreases with larger gamma because an early mismatch rejects the
+remaining proposed suffix. This does not mean larger gamma necessarily performs
+worse: it can still yield more output tokens per verification cycle.
+
+### Verification work and supporting diagnostics
+
+For the same 36,008 reference output tokens, the trained draft reduces the number
+of offline verification cycles relative to the raw draft:
+
+| Gamma | Raw cycles | Trained cycles | Cycle reduction | Trained output tokens/cycle |
+| --- | ---: | ---: | ---: | ---: |
+| 1 | 20,844 | 20,394 | 2.16% | 1.77 |
+| 2 | 15,912 | 15,371 | 3.40% | 2.34 |
+| 4 | 12,314 | 11,533 | 6.34% | 3.12 |
+| 8 | 10,270 | 9,348 | 8.98% | 3.85 |
+
+Gamma 8 saves more verification cycles, but drafts more tokens that may be
+rejected. Neither this table nor the replay runtime establishes which gamma has
+the best wall-clock performance in a native serving engine.
+
+On fresh teacher traces, pooled token-weighted NLL fell from 0.920 to 0.760,
+a 17.4% reduction. Teacher-token top-1 agreement rose from 74.77% to 78.06%.
+Both metrics improved in every source. On the separate 192-example monitored
+validation diagnostic, token-weighted NLL fell from 0.765 to 0.667 and target
+top-1 accuracy rose from 78.25% to 80.59%. The fresh-trace results provide the
+stronger evidence that the gain extends beyond the monitored subset.
+
+### Limits and next decision
+
+Of the 300 teacher traces, 257 (85.7%) reached the 128-token cap and 43 ended
+normally. The result therefore does not establish full-answer quality, tool-use
+performance, or general reasoning quality. Prompt exclusion is based on normalized
+exact hashes, not semantic deduplication. Bootstrap uncertainty describes this
+selected sample, not all domains. Replay identity is by construction and does
+not replace a native speculative-engine exactness test.
+
+**Next priority: native integration and Spark measurements, initially testing
+gamma 4 and 8 against the raw draft and the appropriate serving baselines.**
+Verify native correctness, end-to-end latency/throughput, and independent quality
+before claiming a deployment win. Further SFT is not the immediate priority:
+first determine whether the demonstrated acceptance gain outweighs drafting
+overhead. The current checkpoint is a supported candidate, not a proven optimal
+training endpoint. No additional job is authorized or launched by this conclusion.
+
 ## Method and scope
 
 This is **offline greedy teacher-trace replay**, not native vLLM speculative

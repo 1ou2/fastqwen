@@ -4,11 +4,16 @@ set -uo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT" || exit 1
 OUTPUT="${1:-data/runs/draft-compare-20261105}"
+MAX_NEW_TOKENS="${2:-128}"
 RAW_GPU="${RAW_GPU_INDEX:-2}"
 TRAINED_GPU="${TRAINED_GPU_INDEX:-3}"
 LOG="${OUTPUT}.log"
 STATUS="${OUTPUT}.exit-status.txt"
 
+if [[ ! "$MAX_NEW_TOKENS" =~ ^[1-9][0-9]{0,3}$ ]] || [[ "$MAX_NEW_TOKENS" -ge 2048 ]]; then
+    printf 'Teacher-token horizon must be an integer from 1 to 2047\n' >&2
+    exit 1
+fi
 if [[ ! "$RAW_GPU" =~ ^[0-9]+$ || ! "$TRAINED_GPU" =~ ^[0-9]+$ || "$RAW_GPU" == "$TRAINED_GPU" ]]; then
     printf 'Choose two distinct integer GPU indices\n' >&2
     exit 1
@@ -32,9 +37,10 @@ if [[ ! "$SPACE" =~ ^[0-9]+$ || "$SPACE" -lt 10485760 ]]; then
 fi
 
 run_comparison() {
+    printf 'Comparison: output=%s teacher-token-horizon=%s context=2048 prompts=300 gammas=1,2,4,8\n' "$OUTPUT" "$MAX_NEW_TOKENS"
     CUDA_VISIBLE_DEVICES='' "$ROOT/.venv/bin/python" -u scripts/compare_drafts.py prepare \
         --run-dir "$OUTPUT" --per-group 100 --diagnostic-per-group 64 \
-        --max-new-tokens 128 --gammas 1 2 4 8 || return 1
+        --max-new-tokens "$MAX_NEW_TOKENS" --max-context 2048 --gammas 1 2 4 8 || return 1
     cp -- scripts/run_draft_comparison.sh "$OUTPUT/source/scripts/run_draft_comparison.sh" || return 1
     CUDA_VISIBLE_DEVICES="$RAW_GPU" "$ROOT/.venv/bin/python" -u scripts/compare_drafts.py evaluate \
         --run-dir "$OUTPUT" --arm raw > "$OUTPUT/raw.log" 2>&1 &
