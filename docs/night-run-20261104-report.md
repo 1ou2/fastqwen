@@ -1,4 +1,147 @@
-# November 4 report: QA, SFT implementation, and overnight launch
+# November 4-5 report: completed SFT pilot
+
+## Completion update: November 5
+
+The first mixed English/French/code SFT pilot **completed successfully at
+23:18:43 CET on November 4**, with process exit code **0**, manifest status
+`completed`, and **2,000 optimizer updates**. It did not run through the night:
+the bounded job finished about 81 minutes after launch. No further training was
+automatically queued.
+
+The November 5 verification, beginning at **20:19 CET**, confirmed the completed
+state, final export, and retained checkpoints. All four GPUs reported 0%
+utilization at the sampled instant. Teacher replica 0 remained loaded on GPUs
+0-1; GPUs 2-3 reported no allocated memory. The pilot tmux session had exited.
+No containers or jobs were changed during that check.
+
+### Work completed
+
+- The prior teacher generation and QA work supplied 195,991 accepted training
+  rows and 4,181 validation rows, with EN/FR/code source labels and preserved raw
+  targets. The full QA accounting is retained in the historical section below.
+- The main `.venv` gained the training dependencies. A pinned-template,
+  assistant-only, text-decoder SFT harness and guarded detached launcher were
+  implemented, with no silent target truncation.
+- Real GPU save/resume smokes passed after fixing checkpoint key remapping;
+  all 178 repository tests passed before launch.
+- The approved single-H100 pilot trained on the prepared mixed-source corpus,
+  saved periodic optimizer checkpoints, and exported its first trained draft.
+
+### Measured timing
+
+| Milestone or duration | Recorded result |
+| --- | --- |
+| Pilot launch | November 4, 21:58:00 CET |
+| Training launch recorded | November 4, 22:09:10 CET |
+| Final manifest update | November 4, 23:18:43 CET |
+| Preparation/startup before training | 11 min 10 sec |
+| Trainer-reported runtime | 1 h 9 min 16 sec |
+| Total launch-to-final-update time | 1 h 20 min 43 sec |
+| Mean optimizer-update time | Approximately 2.08 sec |
+
+The preparation/startup interval includes work before `Trainer.train`, not an
+isolated CPU-tokenizer benchmark. Trainer runtime includes periodic validation
+and checkpoint writes. Final evaluation/export adds time beyond that runtime.
+These are **single-H100 training measurements**, not Spark inference results.
+
+### Retained training data
+
+| Source | Length-eligible rows | Overlength skips | Prepared assistant-label tokens |
+| --- | ---: | ---: | ---: |
+| English S1 | 101,957 | 5,939 | 78,310,157 |
+| French S1 | 39,579 | 473 | 15,601,992 |
+| Code S2 | 41,761 | 6,282 | 32,581,763 |
+| Total | **183,297** | **12,694** | **126,493,912** |
+
+The prepared corpus contains 156,877,034 input tokens, including masked prompt
+tokens. The 2,048-token limit excluded long sequences without truncating answers.
+Code lost proportionally more rows than French, so length filtering changed the
+source mixture. No balancing, packing, tool trajectories, or reasoning training
+was added.
+
+The pilot used microbatch 1, gradient accumulation 4, and 2,000 updates:
+approximately **8,000 examples**, or **4.36% of one epoch** over retained rows.
+The prepared token totals above describe the available corpus, **not tokens all
+consumed during this pilot**. Validation used 192 examples, 64 per source,
+selected in source order among length-eligible validation records.
+
+### Results and interpretation
+
+| Optimizer step | Aggregate validation loss |
+| --- | ---: |
+| 200 | 0.713012 |
+| 400 | 0.694058 |
+| 800 | 0.673295 |
+| 1,200 | 0.664993 |
+| 1,400 | 0.664083 |
+| 1,600 | 0.663842 |
+| 1,800 | 0.663906 |
+| 2,000 | **0.664089** |
+
+Mean reported training loss was **0.777031**. Validation loss decreased during
+the pilot and largely plateaued after step 1,400; the final checkpoint was not
+the lowest-loss logged point. The cosine learning-rate schedule also decayed
+toward zero, so the plateau alone does not establish that further training is
+useless or that overfitting occurred.
+
+There is **no step-zero/untrained baseline evaluation**, no per-source loss
+breakdown, no scored code/factual quality comparison, and no raw-versus-trained
+speculative acceptance measurement yet. Step 200 is already a trained model.
+The loss change therefore cannot be presented as improvement over the original
+student, a passed acceptance gate, or a Spark speedup.
+
+### Artifact verification
+
+The November 5 checks verified process exit code 0, manifest completion, and
+global step 2,000; rehashed all recorded tokenized-data and archived-source
+files; checked checkpoint state-file presence; and opened the final safetensors
+header successfully. This was an integrity check, not an inference-quality test
+or a full numerical scan of every saved tensor.
+
+- [Pilot manifest](../data/runs/sft-pilot-20261104/training-manifest.json):
+  configuration, pinned revisions, preparation counts, runtime, and final metrics.
+- [Trainer state](../data/runs/sft-pilot-20261104/trainer_state.json): optimizer
+  progress and logged validation history.
+- [Final export](../data/runs/sft-pilot-20261104/final): model, configuration,
+  tokenizer, and teacher chat template. The weight file is 3,763,692,048 bytes.
+- [Checkpoint 1800](../data/runs/sft-pilot-20261104/checkpoint-1800),
+  [checkpoint 1900](../data/runs/sft-pilot-20261104/checkpoint-1900), and
+  [checkpoint 2000](../data/runs/sft-pilot-20261104/checkpoint-2000): each has
+  nonempty model, optimizer, scheduler, RNG, and trainer-state files.
+- [Pilot log](../data/runs/sft-pilot-20261104.log) and
+  [process exit status](../data/runs/sft-pilot-20261104.exit-status.txt).
+
+### Next priorities
+
+1. **Verify the durable Spark backup.** Preserve the final model, optimizer
+   checkpoints, tokenized data, manifests, logs, and archived implementation
+   before releasing the cluster. Backup tooling exists; the actual transfer is
+   still unverified here.
+2. **Evaluate raw versus trained draft on H100.** Add a shared held-out baseline,
+   per-source loss/quality checks, and teacher-token acceptance with a gamma
+   sweep. The loaded teacher can use GPUs 0-1 while the student uses GPU 2.
+3. **Choose further training from evidence.** Review mixture and length policy
+   before scaling. A straight extrapolation from this pilot suggests roughly
+   26 hours for one retained-data epoch on one H100 at unchanged settings;
+   this is a planning estimate, not a measured full-epoch duration or a reason
+   to assume linear four-GPU speedup. Extending the completed job also needs an
+   explicit new schedule/configuration, not an unnoticed resume-contract change.
+4. **Use remaining cluster access for calibration/export where appropriate.**
+   Optimized hybrid-attention kernels, distributed SFT, and quantization/export
+   harnesses need separate validation; do not assume they are already ready.
+5. **Keep final claims on Spark.** Baseline, FP8/NVFP4, native MTP versus raw and
+   trained draft, speculative exactness, quality, memory, and serving comparisons
+   remain separate project gates.
+
+The next useful GPU experiment is a **raw-versus-trained evaluation**, not an
+unmeasured larger training run. See the [SFT runbook](sft-night-20261104.md) for
+the implementation and original launch/recovery procedure.
+
+## Original evening report: historical snapshot
+
+The remainder preserves the launch-time observations from November 4. References
+below to preparation, absent pilot checkpoints, or pending completion describe
+that earlier snapshot; the completion update above is the current outcome.
 
 Status observations began at **2026-11-04 22:00:31 CET** on the H100 cluster.
 The log, manifest, session, and GPU readings were collected separately around
