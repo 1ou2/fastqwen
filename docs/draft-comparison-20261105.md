@@ -13,6 +13,12 @@ completed, both worker exit codes were zero, and the launcher exited zero.
 The authoritative results are in the
 [completed summary](../data/runs/draft-compare-20261105/summary.json).
 
+**Follow-up:** the [512-token comparison](overnight-comparison-20261105.md)
+completed successfully on November 6 and retained positive acceptance gains
+across all three sources and four gamma values. Its completed results and the
+November 15 follow-up priority are documented there; the next-decision section
+below preserves the November 5 recommendation.
+
 **Conclusion: the 2,000-update pilot is a better draft on this evaluation.**
 Acceptance improved across English, French, and code, including fresh prompts
 excluded from QA training and the monitored validation subset. Retain the pilot

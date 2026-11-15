@@ -3,6 +3,29 @@
 Run the backup from your local DGX Spark while the GPU server is still available.
 The default SSH alias is `gpu-server`, matching your working `scp` syntax.
 
+## Reported successful transfer: November 15, 2026
+
+The user ran `bash backup_to_spark.sh .` from the Spark checkout's `h100`
+directory and supplied output ending with:
+
+```text
+Source: gpu-server:/opt/home/gabriel/dev/fastqwen/
+Destination: /home/gabriel/dev/fastqwen/h100
+Verified backup: /home/gabriel/dev/fastqwen/h100
+```
+
+This is a user-reported successful transfer and second checksum comparison for
+the script's selected files, not an independent inspection of the Spark copy.
+The selected scope includes the trained draft's
+[final export](../data/runs/sft-pilot-20261104/final), retained optimizer
+checkpoints, and both completed draft comparisons under `data/runs/`.
+The final `model.safetensors` on the source is 3,763,692,048 bytes.
+
+The reported 20,560,220 transferred bytes are not the total backup size:
+unchanged destination files are skipped. Writer quiescence and a second durable
+copy were not established by the supplied output. Rerun the backup after any new
+experiments or documentation changes and verify again before releasing the server.
+
 ## Scope
 
 The backup preserves the repository-relative directory structure and includes:
