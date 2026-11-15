@@ -32,7 +32,10 @@ def test_calibration_keeps_tools_and_reasoning_in_conversations():
     }
     messages, prompts = calibration_conversation(record, "tools")
     assert prompts == [record["prompt"]]
-    assert messages[-1]["tool_calls"] == record["tool_calls"]
+    assert messages[-1]["tool_calls"][0]["function"] == {
+        "name": "weather", "arguments": {"city": "Paris"},
+    }
+    assert record["tool_calls"][0]["function"]["arguments"] == '{"city":"Paris"}'
     with pytest.raises(ValueError, match="real tool schemas"):
         calibration_conversation({**record, "tools": None}, "tools")
     reasoning = {**record, "content": "42", "reasoning": "Compute the result."}
@@ -40,6 +43,21 @@ def test_calibration_keeps_tools_and_reasoning_in_conversations():
     assert messages[-1]["reasoning_content"] == reasoning["reasoning"]
     with pytest.raises(ValueError, match="reasoning_content"):
         calibration_conversation({**reasoning, "reasoning": ""}, "reasoning")
+
+
+@pytest.mark.parametrize("arguments", ['{', '[]', 2])
+def test_calibration_rejects_invalid_tool_arguments(arguments):
+    record = {
+        "messages": [
+            {"role": "user", "content": "Search the docs."},
+            {"role": "assistant", "content": "", "tool_calls": [
+                {"type": "function", "function": {"name": "search_docs", "arguments": arguments}},
+            ]},
+        ],
+        "tools": [{"type": "function", "function": {"name": "search_docs", "parameters": {"type": "object"}}}],
+    }
+    with pytest.raises(ValueError, match="tool argument"):
+        calibration_conversation(record, "tools")
 
 
 def _calibration(tmp_path, **overrides):

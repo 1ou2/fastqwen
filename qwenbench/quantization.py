@@ -55,6 +55,7 @@ def calibration_conversation(record: dict[str, Any], group: str) -> tuple[list[d
         messages = [{"role": "user", "content": prompt}, assistant]
     if not isinstance(messages, list) or not messages:
         raise ValueError("Calibration messages must be a nonempty list")
+    normalized = []
     prompts = []
     assistants = []
     for message in messages:
@@ -67,7 +68,29 @@ def calibration_conversation(record: dict[str, Any], group: str) -> tuple[list[d
                 raise ValueError("Empty calibration user message")
             prompts.append(message["content"])
         if message["role"] == "assistant":
+            message = dict(message)
+            if message.get("tool_calls"):
+                calls = message["tool_calls"]
+                if not isinstance(calls, list):
+                    raise ValueError("Calibration tool_calls must be a list")
+                normalized_calls = []
+                for call in calls:
+                    if not isinstance(call, dict) or not isinstance(call.get("function"), dict):
+                        raise ValueError("Calibration tool calls require a function")
+                    function = dict(call["function"])
+                    arguments = function.get("arguments")
+                    if isinstance(arguments, str):
+                        try:
+                            arguments = json.loads(arguments)
+                        except json.JSONDecodeError as exc:
+                            raise ValueError("Invalid calibration tool argument JSON") from exc
+                    if not isinstance(arguments, dict):
+                        raise ValueError("Calibration tool arguments must be an object")
+                    function["arguments"] = arguments
+                    normalized_calls.append({**call, "function": function})
+                message["tool_calls"] = normalized_calls
             assistants.append(message)
+        normalized.append(message)
     if not prompts or not assistants:
         raise ValueError("Calibration conversations require user and assistant messages")
     if group == "tools":
@@ -85,7 +108,7 @@ def calibration_conversation(record: dict[str, Any], group: str) -> tuple[list[d
         for message in assistants
     ):
         raise ValueError("Reasoning calibration requires an explicit nonempty reasoning_content")
-    return messages, prompts
+    return normalized, prompts
 
 
 def weight_map(directory: Path) -> dict[str, str]:
