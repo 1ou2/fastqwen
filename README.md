@@ -12,3 +12,9 @@ uv pip install -U "transformers>=5.8.0"
 
 ## Run
 Run script is `run_baseqwen.sh`
+
+## NVFP4 quantization
+
+See [the H100 calibration/export workflow](docs/nvfp4-quantization.md) for the
+isolated ModelOpt environment, mixed calibration inputs, and Spark deployment
+gates.
