@@ -26,6 +26,44 @@ unchanged destination files are skipped. Writer quiescence and a second durable
 copy were not established by the supplied output. Rerun the backup after any new
 experiments or documentation changes and verify again before releasing the server.
 
+## New artifacts and backup in progress: November 15, 21:49 CET
+
+The user reported another backup in progress. Its completion and the contents of
+the Spark copy have not yet been confirmed. New work is documented in the
+[NVFP4 runbook](nvfp4-quantization.md):
+
+- `data/runs/nvfp4-smoke-20261115-v3/`: verified bounded H100 export, including
+  its approximately 28.57 GB checkpoint. This is not a deployment-qualified model.
+- `data/runs/calibration-nvfp4-20261115/`: 512-sequence mixed-domain calibration
+  sample, 421,921 tokens, manifest, and integrity report. It is not the entire
+  training corpus or the approximately 1.05-million-token target in the plan.
+- `data/calib/nvfp4-inputs-20261115/`: original tool/reasoning prompts, frozen
+  teacher conversations, preparation scripts, manifests, and temporary-teacher
+  deployment/log archive.
+- The tool/reasoning generation runs and earlier failed smoke attempts under
+  `data/runs/` are included as well; account for their space.
+
+The trained draft and its retained checkpoints remain in scope. At the 21:49
+status check, full NVFP4 export and longer SFT were recommendations, not launched
+jobs. They were subsequently [launched in tmux at 21:58 CET](overnight-artifacts-20261115.md):
+mixed followed by `mlp-only` on GPU 2, and fresh 10,000-update SFT on GPU 3.
+Logs and checkpoints will change while these jobs run. An interim transfer is
+not a final snapshot; wait for these writers to finish before final verification.
+
+### Editing documentation during a transfer
+
+It is safe to update the source documentation while this script runs: the backup
+reads source files and does not delete or modify them. However, it is not an
+atomic snapshot. A concurrent edit may produce an older or incomplete destination
+copy or a verification difference; even a successful check does not cover an edit
+made after that file was checked.
+
+Let the current backup finish. After documentation edits are complete, rerun the
+same command against the same Spark destination and require `Verified backup`.
+This collects changes incrementally, although checksum passes still reread the
+selected files. Do not treat the current transfer as the final backup if writers
+continue. Push application code and dependency files through Git separately.
+
 ## Scope
 
 The backup preserves the repository-relative directory structure and includes:

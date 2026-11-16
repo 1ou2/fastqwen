@@ -58,7 +58,8 @@ deduplication. Inputs are hashed and selections are deterministic.
   --output-dir data/runs/calibration-nvfp4-20261115
 ```
 
-The tools/reasoning paths above were prepared in the full calibration run below.
+The tools/reasoning paths above were prepared in the mixed-domain calibration
+candidate below.
 The builder writes `calibration.jsonl` and a completed `manifest.json`.
 
 ## Export
@@ -149,9 +150,9 @@ run. At that point no full production calibration, Spark serving, quality campai
 or performance comparison had been launched; the tools/reasoning inputs were
 still missing.
 
-## Full calibration prepared: November 15, 2026
+## Mixed-domain calibration candidate prepared: November 15, 2026
 
-The [full calibration manifest](../data/runs/calibration-nvfp4-20261115/manifest.json)
+The [calibration manifest](../data/runs/calibration-nvfp4-20261115/manifest.json)
 is completed with `smoke: false`. The token file contains **512 sequences,
 421,921 actual tokens**, with a 2,048-token cap and no padding:
 
@@ -162,6 +163,17 @@ is completed with `smoke: false`. The token file contains **512 sequences,
 | Tools | 64 | 35,843 | 391 | 1 |
 | Reasoning | 64 | 120,825 | 2,048 | 36 |
 | Total | 512 | 421,921 | - | 57 |
+
+This is a representative sample across the four domains, not the entire training
+corpus. Earlier conversation wording called it "full" to distinguish it from the
+four-sequence smoke, but that overstated its match to the
+[project plan](../project-plan.md). The plan calls for approximately 512 sequences
+of 2,048 tokens, about 1,048,576 tokens total. This candidate has about 40% of
+that token volume. It passes the current builder's count/domain/cap guards,
+but those guards do not require every sequence to contain 2,048 real tokens.
+Meeting the planned volume more closely requires longer real inputs or suitable
+packing, not artificial padding. Source/domain coverage is also limited as
+described below.
 
 French/code come from the existing QA training export. The missing groups were
 prepared from **original synthetic prompts**, not copied evaluation questions or
@@ -199,11 +211,54 @@ hashes**, input/token hashes, token bounds, and exact re-tokenization of all 128
 tool/reasoning sequences with the pinned template. Real tool arguments exposed
 and fixed a JSON-string/object template incompatibility; 24 focused tests passed.
 
-Production-mode export preflight passed. **The full NVFP4 export has not been
-started**; use the export command above as the next step. This calibration meets
-the preparation contract, but does not establish quantized quality, native Spark
-compatibility, MTP engagement, or speedup. Both the calibration run and its
+Production-mode export preflight passed. At calibration preparation, the full
+NVFP4 export had not started; it was subsequently
+[launched in tmux at 21:58 CET](overnight-artifacts-20261115.md). This calibration meets
+the current script's input contract, not the project's full-length calibration
+target. It does not establish quantized quality, native Spark compatibility, MTP
+engagement, or speedup. Both the calibration run and its
 source conversations are in the Spark backup scope; rerun backup to include them.
+
+## Status and proposed overnight work: November 15, 21:49 CET
+
+Implemented and completed: the calibration/export workflow, bounded H100 smoke
+export, mixed-domain calibration candidate, source/provenance archives, and
+production-mode input preflight. The only verified NVFP4 checkpoint remains the
+four-sequence smoke; preparing calibration data does not calibrate model weights.
+No full export or longer SFT process was running on this H100 host at this status
+check. The existing trained draft and completed comparisons are unchanged.
+
+The recommendation discussed, **not launched**, is:
+
+| Work | GPU | Planning estimate |
+|---|---|---|
+| Mixed NVFP4 candidate export using the prepared set | 2 | 1-2 h |
+| Optional subsequent `mlp-only` export | 2, sequentially | Another 1-2 h |
+| Fresh longer draft SFT, approximately 10,000 updates | 3, in parallel | Approximately 6-8 h plus preparation |
+
+These are estimates, not full-run measurements. Re-estimate quantization from
+the first calibration sequences and SFT from actual training throughput.
+The [current trainer](../scripts/train_draft.py) checks the original run's
+configuration on resume, including its step budget; simply increasing the
+completed pilot's budget is refused. A fresh longer run starts from the pinned
+original draft and preserves the pilot, rather than continuing its final weights.
+No improvement or speedup is guaranteed, and distributed SFT is not implemented.
+Use a persistent session with logs/exit status and confirm startup before logging
+off; leave existing teacher containers untouched.
+
+The user reported another Spark backup in progress at 21:49 CET. Documentation
+edits during that transfer are safe for the source but may not be included in the
+verified copy. Rerun after edits finish; see the
+[backup runbook](backup-to-spark.md) for the final quiescent verification.
+
+## Approved overnight launch: November 15, 21:58 CET
+
+The user approved and the assistant launched mixed NVFP4 on GPU 2, with
+`mlp-only` queued after successful mixed completion, and a fresh 10,000-update
+draft SFT job assigned to GPU 3. Both tmux sessions were verified alive. Mixed
+export initially reported `running`; SFT initially reported `preparing`, with
+CPU tokenization progressing. No completed result is claimed for either job.
+See the [launch record and monitoring instructions](overnight-artifacts-20261115.md).
 
 References: [ModelOpt PTQ](https://github.com/NVIDIA/Model-Optimizer/tree/main/examples/hf_ptq)
 and [unified HF export](https://nvidia.github.io/Model-Optimizer/deployment/3_unified_hf.html).
