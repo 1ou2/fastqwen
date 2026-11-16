@@ -1,5 +1,111 @@
 # Overnight H100 artifact runs: November 15, 2026
 
+## Completed results and conclusions: November 16, 2026
+
+All three jobs finished successfully: both quantization stages, their overall
+chain, and the SFT launcher recorded exit code **0**. The two export manifests
+and the training manifest have `status: completed`. The launch observations
+below are historical, not the current job state.
+
+### Target quantization
+
+| Recipe | Verified NVFP4 modules | Checkpoint disk size | Finished (CET) |
+|---|---:|---:|---|
+| [Mixed](../data/runs/nvfp4-mixed-20261115/manifest.json) | 256 | 28,574,978,139 bytes (28.57 GB / 26.61 GiB) | November 15, 22:03:32 |
+| [MLP-only](../data/runs/nvfp4-mlp-only-20261115/manifest.json) | 192 | 30,986,660,543 bytes (30.99 GB / 28.86 GiB) | November 15, 22:08:49 |
+
+Both used the same 512-sequence, 421,921-token mixed-domain calibration candidate.
+The exporter passed original weight coverage, exact preservation of MTP/vision/
+Gated DeltaNet weights, normalized configuration, NVFP4 layout/metadata, and
+original source-hash checks. All 15 native MTP tensors were preserved.
+
+Mixed saves approximately **2.41 GB** on disk versus MLP-only. These are partial
+quantization recipes; disk size is not a measurement of serving memory or speed.
+Neither export has yet been quality-qualified or validated for native NVFP4
+serving and MTP operation on Spark/GB10. The calibration candidate still contains
+only about 40% of the token volume described in the project plan.
+
+### Longer draft SFT
+
+The [training manifest](../data/runs/sft-long-20261115/training-manifest.json)
+records **10,000 optimizer updates**, approximately 40,000 example presentations,
+and **0.2182 epochs**. This was a fresh run, not a pilot resume.
+The [final model](../data/runs/sft-long-20261115/final/) is saved; its weight file
+contains 3,763,692,048 bytes (approximately 3.76 GB).
+
+| Metric | [2,000-step pilot](../data/runs/sft-pilot-20261104/training-manifest.json) | Overnight 10,000-step run |
+|---|---:|---:|
+| Final validation loss (lower is better) | 0.664089 | **0.637361** |
+| Average training loss | 0.777031 | 0.757809 |
+| Trainer-reported training runtime | 4,155.6 seconds (1h 09m 15.6s) | 19,583.5 seconds (5h 26m 23.5s) |
+
+Final validation loss decreased **4.02%** relative to the pilot on the same
+192 validation examples: 64 English, 64 French, and 64 code. This aggregate
+teacher-answer loss is not a factual-quality score, a per-domain improvement
+result, or a speculative acceptance measurement.
+
+The [validation history](../data/runs/sft-long-20261115/trainer_state.json)
+shows diminishing returns:
+
+| Update | Validation loss |
+|---|---:|
+| 2,000 | 0.662570 |
+| 4,000 | 0.641222 |
+| 6,000 | 0.637086 |
+| 6,600 (best observed) | **0.636217** |
+| 10,000 (final) | 0.637361 |
+
+Improvement largely plateaued around 6,000 updates. The small rise from the best
+observed loss to the final loss is not strong evidence of overfitting on this
+small monitored set. Best-checkpoint selection was not enabled; step 6,600 was
+not retained. The remaining resumable checkpoints are 9,800, 9,900, and 10,000,
+alongside the final model. The cosine learning-rate schedule also changes with
+the update budget, so this is not simply a continuation of the pilot trajectory.
+
+### Measured time spent by phase
+
+Times below use manifest timestamps and recorded runtimes, not the original
+launch estimates. All clock times are **CET (UTC+1)**; durations are rounded to
+one decimal second. Quantization and SFT ran concurrently on different GPUs,
+so their durations must not be added to obtain elapsed overnight wall time.
+
+| Phase | Time window (CET) | Duration | Measurement |
+|---|---|---:|---|
+| Mixed target loading, calibration, export, and verification | November 15, 21:58:15.8 to 22:03:32.2 | **5m 16.4s** | Export manifest `runtime_seconds` |
+| Gap between quantization stages | November 15, 22:03:32.2 to 22:03:39.2 | 7.0s | Difference between stage timestamps |
+| MLP-only target loading, calibration, export, and verification | November 15, 22:03:39.2 to 22:08:49.0 | **5m 09.8s** | Export manifest `runtime_seconds` |
+| Both quantization stages, first stage start to last stage finish | November 15, 21:58:15.8 to 22:08:49.0 | **10m 33.2s** | Manifest wall-clock interval, including stage gap |
+| SFT preparation and initialization before training | November 15, 21:58:11.4 to 22:09:12.2 | **11m 00.8s** | Training manifest `started_at` to `last_launch_at` |
+| SFT training loop, including periodic validation and checkpointing | Starts November 15, 22:09:12.2 | **5h 26m 23.5s** | Trainer `train_runtime` |
+| Final post-training validation | After training | **13.6s** | Final `eval_runtime`; additional to the training loop |
+| Remaining post-launch overhead outside training and final validation | Not separately timestamped | Approximately 2.3s | Residual, not an independently measured save duration |
+| Complete SFT run, preparation through final artifacts | November 15, 21:58:11.4 to November 16, 03:35:51.6 | **5h 37m 40.2s** | Training manifest `started_at` to `updated_at` |
+
+SFT preparation includes tokenization, data checks, model loading, and trainer
+initialization; CPU tokenization alone was not separately timed. Likewise, the
+quantization manifests do not separate loading, calibration, export, hashing,
+and verification durations. Periodic SFT validation/checkpoint costs are included
+in the training-loop runtime and have no separate aggregate timing here.
+The approximately 2.3-second residual includes final saving/state bookkeeping
+and timing-boundary overhead; it should not be interpreted as an exact export
+benchmark. Both quantization runs took about five minutes rather than the
+estimated one to two hours per recipe.
+
+### Overall conclusion and next gates
+
+**Successful artifact production, a modest draft validation-loss improvement,
+but no demonstrated deployment speedup yet.** Additional training should not be
+the automatic next step given the observed plateau.
+
+1. Compare the new draft against the original draft and pilot on frozen
+   per-domain diagnostics and teacher-trace/speculative acceptance evaluations.
+   Earlier comparison results evaluated the pilot, not this new final model.
+2. Validate both quantized targets on Spark/GB10: native loading, MTP engagement,
+   quality versus the unquantized target, serving memory, and end-to-end speed.
+3. Rerun the Spark backup after completion and require `Verified backup`, plus
+   an additional durable copy, before releasing the H100 host. A completed final
+   backup was not verified as part of this results analysis.
+
 ## Verified launch
 
 With user approval, both jobs were launched in separate detached tmux sessions
