@@ -63,3 +63,46 @@ ramp, concurrency sweep, and formal run manifest are also outstanding. Reuse
 these two workloads unchanged to compare mixed NVFP4 decode speed; use a separate
 frozen chat workload with normal EOS and explicit reasoning settings for time
 to the complete answer.
+
+## Methodology
+In terminal one
+cd ~/dev/fastqwen
+source .venv/bin/activate
+MODEL=Qwen/Qwen3.8-27B
+REV=1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0
+RUN="benchmarks/runs/$(date -u +%Y%m%dT%H%M%SZ)-spark-bf16"
+mkdir -p "$RUN"
+printf 'Use this in terminal 2: RUN=%q\n' "$RUN"
+
+(
+  set -x
+  HF_HUB_OFFLINE=1 VLLM_USE_RUST_FRONTEND=1 VLLM_ENGINE_READY_TIMEOUT_S=1800 \
+    vllm serve "$MODEL" --revision "$REV" --dtype bfloat16 \
+    --host 127.0.0.1 --port 8000 --language-model-only \
+    --max-model-len 8192 --max-num-seqs 1 --gpu-memory-utilization 0.8 \
+    --no-enable-prefix-caching --generation-config vllm
+) 2>&1 | tee "$RUN/server.log"
+
+In terminal two, export RUN
+curl -fsS http://127.0.0.1:8000/health && echo "Ready"
+TOKENIZER="$HOME/.cache/huggingface/hub/models--Qwen--Qwen3.8-27B/snapshots/1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0"
+
+(
+  set -ex
+  date -u
+  git rev-parse HEAD
+  vllm --version
+  nvidia-smi --query-gpu=name,driver_version --format=csv
+  for INPUT in 512 4096; do
+    vllm bench serve --backend openai \
+      --base-url http://127.0.0.1:8000 --endpoint /v1/completions \
+      --model Qwen/Qwen3.8-27B --tokenizer "$TOKENIZER" \
+      --dataset-name random --random-input-len "$INPUT" \
+      --random-output-len 128 --random-range-ratio 0 --seed 42 \
+      --max-concurrency 1 --num-warmups 1 --num-prompts 3 \
+      --temperature 0 --ignore-eos \
+      --percentile-metrics ttft,tpot,e2el --metric-percentiles 50,95 \
+      --save-result --save-detailed --result-dir "$RUN" \
+      --result-filename "input-${INPUT}-output-128.json"
+  done
+) 2>&1 | tee "$RUN/benchmark.log"
